@@ -1,0 +1,123 @@
+<style>
+* {
+  box-sizing: border-box;
+}
+
+.column {
+  float: left;
+  width: {{ column_width }}%;
+  padding: 5px;
+}
+
+/* Clearfix (clear floats) */
+.row::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+    
+figcaption {
+  background-color: white;
+  color: black;
+  font-size:10px;
+  padding: 2px;
+  text-align: left;
+}
+#content {
+    position: relative;
+}
+#content img {
+    position: absolute;
+    width:80px;
+    margin-top:-20px;
+    top: 0px;
+    right: 0px;
+}
+    
+.flex-container {
+  display: flex;
+
+  /*this centers the text horizontally*/
+  justify-content: center;
+
+  /*this centers the text vertically*/
+  align-items: center;
+  text-align: center;
+  margin-top:0px;
+  height: 10px;
+  color: gray;
+  font-size: 8px;
+}
+
+</style>
+
+<div class="flex-container">
+  <p>AutoMoL is designed by Joris Tavernier and Marvin Steijaert. <br> As always in Machine Learning: Data maketh the model!
+    <br>&copy; All rights reserved, Open Analytics NV, 2021-2025.</p>
+</div>
+
+<div id="content">
+    <img src={{ logo }} alt="" />
+</div>
+
+<html>
+<body>
+<h2> {{ title }} </h2>
+<p><b>Authors</b>: {{ authors|safe }}</p>
+<p><b>Contact</b>: {{ mails|safe }}</p>
+<p><b>Date</b>: {{ date|safe }} </p>
+<p><b>Summary</b>: {{ summary|safe }}</p>
+<p><b>AutoMoL version</b>: {{ AutoMLv|safe }}</p>
+    
+<h3>Figures</h3>   
+{%  if figures is iterable and figures is not string 
+   and captions is iterable and captions is not string %}
+   <div class="row">
+    {% for figi, capti in figures|zip(captions) %}
+        <div class="column">
+            <img src={{ figi }} alt="wrong fig" style="width:100%">
+            <figcaption>{{ capti|safe }}</figcaption>
+        </div>
+        {% if loop.index % nb_columns == 0%}
+        <div class="row">
+        </div>
+        {% endif %}
+    {% endfor %}
+    </div>
+{% else %}
+<div class="row">
+  <div class="column">
+    <img src={{ figures }} alt="Snow" style="width:100%">
+     <figcaption>{{ captions|safe }}</figcaption>
+  </div>
+</div>
+{% endif %}
+
+    <b>Figure details:</b> 
+    <ul>
+    {%  if types is iterable and types is not string%}
+        {% for fig_expl in types %}
+              <li>{{ fig_expl|safe }}</li>
+        {% endfor %}
+    {% else %}
+        <li>{{types|safe}}</li>
+    {% endif %}
+    </ul>
+
+<h3> Model Parameters</h3>
+<p><b>Used training parameters</b>: {{ model_param }}</p>
+<p><b>Generated models</b>: </p>
+    <ul>
+    {%  if properties is iterable and properties is not string 
+   and html_strings is iterable and html_strings is not string %}
+        {% for propi, modeli in properties|zip(html_strings) %}
+        <li><b> {{propi}}</b>: <br>{{ modeli|safe}} </li>
+        {% endfor %}
+    {% else %}
+       <li><b> {{properties}}</b>: {{ html_strings|safe}} </li>
+    {% endif %}
+    </ul>
+
+
+</body>
+</html>
