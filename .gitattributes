@@ -1,0 +1,8 @@
+automol_resources/automol/trained_models/abs_leakproof.ckpt filter=lfs diff=lfs merge=lfs -text
+automol_resources/automol/trained_models/abs_lk_bn_val.ckpt filter=lfs diff=lfs merge=lfs -text
+automol_resources/automol/trained_models/abs_stratified_leakproof.ckpt filter=lfs diff=lfs merge=lfs -text
+automol_resources/automol/trained_models/bottleneck_CHEMBL27_ENUM_SMILES_ENCODER.pt filter=lfs diff=lfs merge=lfs -text
+AutoMol/automol_resources/automol/trained_models/abs_leakproof.ckpt filter=lfs diff=lfs merge=lfs -text
+AutoMol/automol_resources/automol/trained_models/abs_stratified_leakproof.ckpt filter=lfs diff=lfs merge=lfs -text
+AutoMol/automol_resources/automol/trained_models/abs_lk_bn_val.ckpt filter=lfs diff=lfs merge=lfs -text
+AutoMol/automol_resources/automol/trained_models/bottleneck_CHEMBL27_ENUM_SMILES_ENCODER.pt filter=lfs diff=lfs merge=lfs -text

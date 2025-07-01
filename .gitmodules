@@ -1,0 +1,3 @@
+[submodule "AutoMol"]
+	path = AutoMol
+	url = https://github.com/openanalytics/AutoMol.git
