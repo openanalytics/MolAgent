@@ -1,8 +1,21 @@
+
 <img src="logo.png" width="100" height="100" align="right"> 
 
 # MolAgent
 
-MolAgent, a system-agnostic agentic AI framework designed for high-fidelity modeling of molecular properties in early-stage drug discovery. MolAgent autonomously implements expert-level pipelines for both classification and regression, empowering agentic systems to efficiently construct and deploy models.
+The advent of agentic AI systems is leading to significant transformations acrossscientific and technological domains. Computer-aided drug design (CADD)—amultifaceted process encompassing complex, interdependent tasks—stands to benefitprofoundly from these advancements. However, a challenge is empowering agenticsystems to autonomously construct models for properties estimation that match thequality and reliability of those developed by human experts. As this is not currentlystrightforawrd, this capability represents a major bottleneck for fully realizing thepotential of autonomous pipelines in drug discovery. We present here MolAgent, asystem-agnostic agentic AI framework designed for high-fidelity modeling of molecularproperties in early-stage drug discovery. MolAgent autonomously implements expert-level pipelines for both classification and regression, empowering agentic systems toefficiently construct and deploy models. With integrated automated feature engineering,robust model selection, advanced ensemble methodologies, and comprehensivevalidation frameworks, MolAgent ensures optimal accuracy and model robustness. Theplatform seamlessly accepts 2D and 3D structural data for ligands and receptors andharmonizes traditional molecular descriptors with advanced deep learning featuresextracted from pretrained 2D and 3D encoders. Ultimately the platform’s fullyautomated, end-to-end workflow is designed for seamless agentic execution. Adherenceto the Model Context Protocol (MCP) guarantees interoperability with diverse agenticAI infrastructures, ensuring flexible integration into complex, future discoverypipelines.
+
+MolAgent enables the following capabilities:
+* Model Context Protocol (MCP) servers, facilitating seamless integration with agentic systems to support enhanced autonomous workflows. The MCP-ready design of MolAgent empowers agentic AI by enabling autonomous decision-making, automated iterative experimentation, and dynamic workflow management. This capability significantly enhances operational efficiency in complex environments, facilitating real-time adaptation and optimized modeling through intelligent agentic interactions.
+* Integration of diverse molecular representation, from traditional chemical or
+similar fingerprints to modern deep learning embeddings.
+* Explicit incorporation of 3D structural information and protein-ligand
+interactions.
+* Specialized data splitting strategies that respect chemical series and activity cliffs.
+* Automated model selection through nested cross-validation methods.
+* Implementation of multiple model ensemble strategies tailored to molecular
+property estimation tasks.
+* Comprehensive validation procedures designed for chemical data.
 
 ## Install package
 
@@ -13,10 +26,10 @@ sudo apt-get install wkhtmltopdf
 We recommend using an uv environment for this package.
 ```{bash}
 pip install uv
-uv venv automol_env --python 3.12
-source automol_env/bin/activate
-uv pip install automol_resources/
-uv pip install automol/
+uv venv molagent_env --python 3.12
+source molagent_env/bin/activate
+uv pip install AutoMol/automol_resources/
+uv pip install AutoMol/automol/
 uv pip install molfeat
 uv pip install streamlit
 uv pip install PyTDC
@@ -33,78 +46,58 @@ Additionally, you can use the provided docker image, still requires the installa
 
 The MCP servers for used by the agentic AI systems are provided in the folder MCP. This folder additionaly contains the prompts for three agents: a data agent, modelling agent and a manager agent. A notebook containing the smolagents example using gradio is provided. 
 
-## AutoMol
+## Tools
 
-AutoMol is the python package used by MolAgent to built generic models for early-stage drug discovery.
+We've created two MCP servers, one for data preparation and one for automol model training.
 
-### Concept
+### Data Server Tools
+| Tool |  Description|
+| :--------------  | :---------------------------------------------------------- |
+| retrieve_tdc_data | This tool retrieves the datasets defined by the given name from therapeutic data commons adme data and returns the location of the data file.  |
+| retrieve_tdc_groups | Returns a list of the available problems or groups from the therapeutic data commons.  |
+| retrieve_tdc_group_datasets | Returns a list of the possible dataset names from the therapeutic data commons for the given group or problem. |
+| retrieve_3d_data | This tool reads the provided sdf file with 3d information and returns the location of a csv data file with the smiles and property value.|
 
-The idea of the AutoMoL package is to enable Machine Learning for non-experts and their project specific properties. This was made possible by two core concepts: 1) use of highly-informative features and 2) the combination of multiple shallow learners. The overall concept is detailed in the Figure 1 below. The pipeline only requires SMILES as input and a provided property target. These SMILES are first standardized.  Next, features are generated using these standardized smiles. The generated features are optionally given to feature selection or dimensionality reduction methods before training several base estimators. The predictions of these base estimators are then provided as input to train a final estimator or blender. The predictions of this final estimator is the final output. The AutoMoL pipeline can be used for regression or classification tasks.
+### Model Server Tools
 
-<img src="Tutorials/hierarchy.png" width="700" height="250">
-
-<sup> Figure 1. The concept of AutoMoL. Starting from the smiles, 
-             features are generated and these features are used to
-             train a combination of several shallow learners.</sup>
-
-### Tutorials
-
-Example Notebooks can be found in the folder Tutorials. In the tutorials we use data from [Therapeutic Data commons](https://tdcommons.ai/). A short summary for each notebook is given in the table below. 
-| Notebook(s) | Summary |
+| Tool | Description|
 | :-------------- | :---------------------------------------------------------- |
-| Classifier, Regressor and RegressionClassifier| The most basic notebooks for regression and classification. These notebooks include examples of target transformation, use of sample weights, 3 predefined computational load settings, data splitting, visualizations and pdf generation. |
-| Intermediate_Classifier, Intermediate_Regressor and Intermediate_RegressorClassifier | The intermediate notebooks for regression and classification. These notebooks include examples of functionality of the basic notebooks and adding feature generators, defining your own method hierarchy and dimensionality reduction.|
-| Expert_Classifier, Expert_Regressor and Expert_RegressorClassifier | The expert notebooks for regression and classification. These notebooks include examples of functionality of the intermediate notebooks and how to add your own regressor/classifier, define/set your own hyperparameters and define your own clustering algorithm.|
-| 3DRegressor | A notebook detailing the use of 3D feature generators such as prolif. |
-| RelativeRegressor | A notebook detailing the use of relative ligand modelling. |
-| BlenderFeatures |  A notebook detailing the use of feeding some features directly to the blender circumventing the base estimators.|
-| Clustering_visualization | A notebook detailing visualizations of clustering results. |
-| Data_cleaning | A notebook detailing limited data cleaning. |
-| Manipulating_models| A notebook detailing how to manipulate trained automol models, merging models or deleting trained targets.|
-| Molfeat_testing | A notebook detailing the available featuregenerators from molfeat. |
-| MultiTarget_Classifier and MultiTarget_Regressor| A notebook detailing how to train a model for multiple targets at once. Instead of separate hierarchies for each target. |
-| Plotly_pdf_generation| A notebook showing how to add your own plotly figure to the generated pdf. |
+| automol_classification_model | This tool uses automol to train a classification model for chemical compounds for a particular property.|
+| automol_regression_model | This tool uses automol to train a regression model for chemical compounds for a particular property. |
 
-#### Tasks
 
-We designed automol for three tasks: Classification, Regression and RegressionClassifier. This last term is defined for binary classification, where basicly model the classification problem as a regression problem with the target value being either 0 or 1. The output is then clipped to the interval [0,1] and used as the probability for the compound being classified as class 1.
+## Starting mcp servers locally
+Using the molagent_env environment, you can start the servers locally, by running the following commands in the terminal. We advise to run the servers from the notebook directory, since the mcp servers will save files only starting from the directory they are run from. 
 
-#### 2D features
-
-The 2D feature generation for chemical compounds is simply SMILES based. The default generators take as input a list of SMILES (strings) and return a data matrix containing the features. Automol has wrappers for the [molfeat](https://molfeat.datamol.io/) feature generators, as detailed in the Molfeat_testing notebook.  
-
-#### 3D features
-The automol has some structure aware features, such as prolif, see the 3Dregressor notebook in the folder Tutorials for more information. You can use these in automol if you provide 3d information in the form of an sdf file and pdb files. Al the different pdbs should be placed in the same folder. This folder should be provided. The sdf file contains all the structures of the compounds. There should be a property pdb referencing the name of the pdb file to be used. Next to the pdb name, the code also requires a property with the target value of the compound. For example, after unzipping <i>Data/manuscript_data.zip</i>,  <i>Data/manuscript_data/ABL/selected_dockings.sdf</i> contains the ligands and the pdbs are located in <i>Data/manuscript_data/ABL/pdbs</i>. 
-
-### Python script with yaml file
-
-A python script that reads the options from a yaml file is provided in the folder script. 
-
+Start data training server locally: 
 ```{bash}
-source automol_env/bin/activate
-cd script/
-uv run_automol.py --yaml_file automl_reg.yaml
+source molagent_env/bin/activate
+cd MCP/
+uv run mcp_server/automol_data_server.py
 ```
-
-### Streamlit App
-Streamlit app for regression and classification can be found in the folder streamlit_app. Upload your csv file and start modelling. From the repository directory run:
+Start model training server locally:
 ```{bash}
-source automol_env/bin/activate
-cd streamlit_app/
-uv run streamlit run automol_app.py
+source molagent_env/bin/activate
+cd MCP/
+uv run mcp_server/automol_model_server.py
 ```
+In the terminal of the model server, you can follow the progress of the model training. 
 
+## Tool Inspector
 
-### Unittest
-
-To execute unittests run the following command from the root directory of the repository:
-```{bash}
-source automol_env/bin/activate
-cd automol/automol/
-uv run -m unittest discover -cf
+You can start the MCP tool inspector by running:
 ```
-
-This does create model files in the execution directory to test saving and reloading models!
+npx @modelcontextprotocol/inspector
+```
+Make sure to copy the session token and set it as Proxy Session Token (under configuration) in the inspector GUI. Then set transport type as SSE with either 
+```
+http://localhost:8001/sse
+```
+or
+```
+http://localhost:8000/sse
+```
+as URL.
 
 ## Contacts
 

@@ -40,17 +40,17 @@ We've created two MCP servers, one for data preparation and one for automol mode
 
 
 ## Starting mcp servers locally
-Using the automol_env environment, you can start the servers locally, by running the following commands in the terminal. We advise to run the servers from the notebook directory, since the mcp servers will save files only starting from the directory they are run from. 
+Using the molagent_env environment, you can start the servers locally, by running the following commands in the terminal. We advise to run the servers from the notebook directory, since the mcp servers will save files only starting from the directory they are run from. 
 
 Start data training server locally: 
 ```{bash}
-source automol_env/bin/activate
+source molagent_env/bin/activate
 cd MCP/
 uv run mcp_server/automol_data_server.py
 ```
 Start model training server locally:
 ```{bash}
-source automol_env/bin/activate
+source molagent_env/bin/activate
 cd MCP/
 uv run mcp_server/automol_model_server.py
 ```
