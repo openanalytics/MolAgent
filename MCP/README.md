@@ -1,4 +1,4 @@
-<img src="../logo.png" width="100" height="100" align="right"> 
+<img src="../molagent.png" width="100" height="100" align="right"> 
 
 # MolAgent
 
