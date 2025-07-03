@@ -23,8 +23,9 @@ For automated pdf generation wkhtmltopdf is used. On linux install with
 ```{bash}
 sudo apt-get install wkhtmltopdf
 ```
-We recommend using an uv environment for this package.
+We recommend using an uv environment for this package. The MCP server uses AutoMol which is cloned from the repository. 
 ```{bash}
+git clone https://github.com/openanalytics/AutoMol
 pip install uv
 uv venv molagent_env --python 3.12
 source molagent_env/bin/activate
@@ -50,13 +51,6 @@ The MCP servers for used by the agentic AI systems are provided in the folder MC
 
 We've created two MCP servers, one for data preparation and one for automol model training.
 
-### Data Server Tools
-| Tool |  Description|
-| :--------------  | :---------------------------------------------------------- |
-| retrieve_tdc_data | This tool retrieves the datasets defined by the given name from therapeutic data commons adme data and returns the location of the data file.  |
-| retrieve_tdc_groups | Returns a list of the available problems or groups from the therapeutic data commons.  |
-| retrieve_tdc_group_datasets | Returns a list of the possible dataset names from the therapeutic data commons for the given group or problem. |
-| retrieve_3d_data | This tool reads the provided sdf file with 3d information and returns the location of a csv data file with the smiles and property value.|
 
 ### Model Server Tools
 
@@ -64,6 +58,16 @@ We've created two MCP servers, one for data preparation and one for automol mode
 | :-------------- | :---------------------------------------------------------- |
 | automol_classification_model | This tool uses automol to train a classification model for chemical compounds for a particular property.|
 | automol_regression_model | This tool uses automol to train a regression model for chemical compounds for a particular property. |
+
+### Auxiliary mcp server to retrieve public database
+
+| Tool |  Description|
+| :--------------  | :---------------------------------------------------------- |
+| retrieve_tdc_data | This tool retrieves the datasets defined by the given name from therapeutic data commons adme data and returns the location of the data file.  |
+| retrieve_tdc_groups | Returns a list of the available problems or groups from the therapeutic data commons.  |
+| retrieve_tdc_group_datasets | Returns a list of the possible dataset names from the therapeutic data commons for the given group or problem. |
+| retrieve_3d_data | This tool reads the provided sdf file with 3d information and returns the location of a csv data file with the smiles and property value.|
+
 
 
 ## Starting mcp servers locally

@@ -3,11 +3,22 @@ from typing import Any, Dict, List, Optional, TypeVar
 PandasDataFrame = TypeVar('pandas.core.frame.DataFrame')
 import sys
 import os 
+
 cpath = os.path.dirname(os.path.realpath(__file__))
 training_tools_path = os.path.join(cpath, "..", "Tools/")
 sys.path.append(training_tools_path)
-from training_tools import load_data_for_training, train_automol_model, create_validation_split, get_feature_generators, add_affinity_graph_feature_generator, training_answer
-from training_tools import prepare_data_for_modeling, evaluate_automol_model, add_prolif_feature_generator
+
+from training_tools import (
+    load_data_for_training, 
+    train_automol_model, 
+    create_validation_split, 
+    get_feature_generators, 
+    add_affinity_graph_feature_generator, 
+    training_answer,
+    prepare_data_for_modeling, 
+    evaluate_automol_model, 
+    add_prolif_feature_generator
+)
 
 from fastmcp import FastMCP
 from mcp import McpError
@@ -15,6 +26,243 @@ from mcp.types import ErrorData, INTERNAL_ERROR, INVALID_PARAMS
 
 # Create an MCP server instance with the identifier "wiki-summary"
 mcp = FastMCP("automol-modelling")
+
+
+SERVER_INFO = {
+    "name": "MolAgent AutoMol MCP Server",
+    "version": "1.0.0",
+    "description": "Model Context Protocol server for automated molecular property prediction using the AutoMol framework",
+    "author": "Open Analytics NV",
+    "repository": "https://github.com/openanalytics/MolAgent",
+    "capabilities": [
+        "Molecular property regression modeling",
+        "Molecular property classification modeling", 
+        "Multi-agent AI framework integration",
+        "Advanced feature generation (2D/3D molecular descriptors)",
+        "Protein-ligand interaction modeling",
+        "Nested cross-validation model selection",
+        "Comprehensive model evaluation and reporting",
+        "Agentic workflow automation"
+    ]
+}
+
+@mcp.tool()
+def list_tools() -> Dict[str, Any]:
+    """
+    List all available tools in the MolAgent MCP server with detailed descriptions.
+    
+    Returns:
+        Dict containing comprehensive information about available tools, their parameters, and capabilities.
+    """
+    tools_info = {
+        "server_info": SERVER_INFO,
+        "available_tools": {
+            "automol_regression_model": {
+                "description": "Train regression models for predicting continuous molecular properties using the AutoMol framework",
+                "category": "molecular_modeling",
+                "complexity": "high",
+                "use_cases": [
+                    "Predicting logP, solubility, melting point, boiling point",
+                    "Drug absorption, distribution, metabolism, excretion properties", 
+                    "Binding affinity prediction (IC50, Ki, Kd values)",
+                    "Toxicity scoring and ADMET property estimation",
+                    "Physicochemical property modeling"
+                ],
+                "key_parameters": {
+                    "data_file": "Path to CSV file containing molecular data and target properties",
+                    "smiles_column": "Column name containing SMILES molecular representations",
+                    "property": "Target property column name for regression",
+                    "feature_keys": "List of feature generators (Bottleneck, rdkit, fingerprints, etc.)",
+                    "computational_load": "cheap/moderate/expensive - controls model complexity and runtime"
+                },
+                "supported_transformations": ["log10", "logit", "percentages"],
+                "output_files": ["PyTorch model (.pt)", "evaluation metrics (JSON)", "training report (PDF)"],
+                "validation_strategies": ["mixed", "stratified", "leave_group_out"],
+                "estimated_runtime": {
+                    "cheap": "2-10 minutes",
+                    "moderate": "10-360 minutes",
+                    "expensive": "1-48 hours"
+                }
+            },
+            
+            "automol_classification_model": {
+                "description": "Train classification models for categorical molecular properties using the AutoMol framework",
+                "category": "molecular_modeling",
+                "complexity": "high",
+                "use_cases": [
+                    "Active/inactive compound classification",
+                    "Toxicity classification (toxic/non-toxic/moderate)",
+                    "Drug-like/non-drug-like classification",
+                    "Multi-class property prediction (e.g., high/medium/low activity)",
+                    "Blood-brain barrier permeability classification"
+                ],
+                "key_parameters": {
+                    "data_file": "Path to CSV file containing molecular data and target classes",
+                    "smiles_column": "Column name containing SMILES molecular representations", 
+                    "property": "Target property column name for classification",
+                    "nb_classes": "Number of classes for classification (2 for binary, 3+ for multi-class)",
+                    "class_values": "Threshold values for class separation from continuous data",
+                    "categorical": "Whether target is already categorical (True) or continuous (False)"
+                },
+                "class_handling": ["automatic threshold detection", "quantile-based splitting", "manual threshold setting"],
+                "output_files": ["PyTorch model (.pt)", "evaluation metrics (JSON)", "training report (PDF)"],
+                "validation_strategies": ["mixed", "stratified", "leave_group_out"],
+                "performance_metrics": ["accuracy", "precision", "recall", "f1_score", "auc_roc", "confusion_matrix"],
+                "estimated_runtime": {
+                    "cheap": "2-10 minutes",
+                    "moderate": "10-360 minutes",
+                    "expensive": "1-48 hours"
+                }
+            },
+            
+            "list_tools": {
+                "description": "Get comprehensive information about all available tools and server capabilities",
+                "category": "utility",
+                "complexity": "low",
+                "use_cases": ["Server capability discovery", "Documentation reference", "Tool selection guidance"],
+                "parameters": "None required",
+                "output": "Detailed tool specifications and server information",
+                "estimated_runtime": "<1 second"
+            },
+            
+            "get_server_status": {
+                "description": "Get current server status, health information, and operational metrics",
+                "category": "utility", 
+                "complexity": "low",
+                "use_cases": ["Health monitoring", "System diagnostics", "Performance tracking"],
+                "parameters": "None required",
+                "output": "Server status and system information",
+                "estimated_runtime": "<1 second"
+            }
+        },
+        
+        "feature_generators": {
+            "description": "Available molecular feature generation methods following cheminformatics best practices",
+            "traditional_descriptors": {
+                "rdkit": {
+                    "description": "Comprehensive RDKit molecular descriptors (200+ features)",
+                    "features": "Physicochemical properties, connectivity indices, electronic properties",
+                    "use_case": "Interpretable models, QSAR analysis"
+                },
+                "desc2D": {
+                    "description": "2D topological and connectivity descriptors", 
+                    "features": "Graph-based molecular properties",
+                    "use_case": "Fast computation, molecular similarity"
+                },
+                "desc3D": {
+                    "description": "3D geometric and shape descriptors",
+                    "features": "Molecular volume, surface area, conformational properties",
+                    "use_case": "Shape-dependent properties, conformational analysis",
+                    "requirements": "3D molecular structures"
+                }
+            },
+            "fingerprints": {
+                "fps_1024_2": "Morgan fingerprints (radius=2, bits=1024) - balanced performance",
+                "fps_2048_2": "Morgan fingerprints (radius=2, bits=2048) - higher resolution", 
+                "fps_512_2": "Morgan fingerprints (radius=2, bits=512) - compact representation",
+                "fps_2048_3": "Morgan fingerprints (radius=3, bits=2048) - extended connectivity",
+                "maccs": "MACCS structural keys (166 bits) - pharmacophore-like",
+                "ecfp": "Extended connectivity fingerprints - customizable",
+                "fcfp": "Functional connectivity fingerprints - functional groups",
+                "avalon": "Avalon fingerprints - unique substructure representation",
+                "atompair-count": "Atom pair count fingerprints",
+                "topological-count": "Topological fingerprints with counts"
+            },
+            "deep_learning_embeddings": {
+                "Bottleneck": {
+                    "description": "Pre-trained transformer embeddings (ChEMBL-trained)",
+                    "training_data": "ChEMBL database",
+                    "dimensions": 256,
+                    "use_case": "General-purpose molecular representation, recommended baseline"
+                },
+                "pcqm4mv2_graphormer_base": {
+                    "description": "Graph transformer embeddings from PCQM4Mv2 dataset",
+                    "model_type": "Graph Transformer",
+                    "use_case": "Graph-based molecular property prediction"
+                },
+                "gin_supervised_edgepred": "Graph isomorphism network embeddings",
+                "gin_supervised_infomax": "InfoMax GIN embeddings",
+                "ChemBERTa-77M-MTR": {
+                    "description": "Chemical BERT embeddings (77M parameters, multi-task)",
+                    "dimensions": 384,
+                    "training": "Multi-task chemical property prediction"
+                },
+                "ChemBERTa-77M-MLM": "Chemical BERT masked language model embeddings",
+                "MolT5": "Molecular T5 transformer embeddings",
+                "ChemGPT-1.2B": "Chemical GPT embeddings (1.2B parameters)",
+                "ChemGPT-4.7M": "Smaller Chemical GPT embeddings (4.7M parameters)"
+            },
+            "protein_ligand_features": {
+                "prolif": {
+                    "description": "Protein-ligand interaction fingerprints using ProLIF",
+                    "interactions": ["Hydrophobic", "HBDonor", "HBAcceptor", "PiStacking", "Anionic", "Cationic"],
+                    "requirements": ["PDB protein structures", "SDF ligand structures"],
+                    "use_case": "Structure-based drug design, binding affinity prediction"
+                },
+                "Affgraph": {
+                    "description": "Affinity graph-based features for protein-ligand binding",
+                    "requirements":  ["PDB protein structures", "SDF ligand structures"],
+                    "use_case": "Binding affinity modeling with graph neural networks"
+                }
+            },
+            "specialized_descriptors": {
+                "electroshape": "Electrostatic shape descriptors",
+                "usrcat": "Ultrafast shape recognition with CREDO atom types", 
+                "usr": "Ultrafast shape recognition descriptors",
+                "pmapper": "Pharmacophore descriptors",
+                "cats": "Chemically advanced template search descriptors",
+                "gobbi": "Gobbi pharmacophore descriptors",
+                "erg": "Extended reduced graphs",
+                "estate": "Electrotopological state descriptors"
+            }
+        },
+        
+        "computational_levels": {
+            "cheap": {
+                "description": "Fast prototyping with basic models",
+                "runtime for 2k compounds": "2-10 minutes",
+                "use_case": "Rapid initial assessment, resource-constrained environments",
+                "models": "Linear models, basic ensemble methods"
+            },
+            "moderate": {
+                "description": "Balanced performance and computational cost",
+                "runtime for 2k compounds": "10-360 minutes",
+                "features": ["Extended feature sets", "Moderate hyperparameter optimization", "Standard cross-validation"],
+                "use_case": "Standard model development, production-ready models",
+                "models": "Random forests, gradient boosting, neural networks"
+            },
+            "expensive": {
+                "description": "Maximum performance with comprehensive search",
+                "runtime for 2k compounds": "1-48 hours",
+                "features": ["All available features", "Extensive hyperparameter optimization", "Ensemble methods"],
+                "use_case": "Research applications, maximum accuracy requirements",
+                "models": "Advanced ensembles, stacking, deep learning",
+            }
+        },
+        
+        "validation_strategies": {
+            "mixed": "General-purpose mixed validation approach",
+            "stratified": "Stratified cross-validation maintaining class proportions", 
+            "leave_group_out": "Scaffold-based splitting to avoid data leakage in drug discovery",
+        },
+        
+        "supported_file_formats": {
+            "input": {
+                "CSV": "Comma-separated values with SMILES and properties",
+                "SDF": "Structure data format with 3D coordinates and properties",
+                "PDB": "Protein data bank format for protein structures"
+            },
+            "output": {
+                "PyTorch": "Trained models in .pt format",
+                "JSON": "Evaluation metrics and metadata",
+                "PDF": "Comprehensive training reports with visualizations",
+                "CSV": "Processed datasets and predictions"
+            }
+        },
+        
+    }
+    
+    return tools_info
 
 @mcp.prompt("automol")
 async def automol_modelling_prompt(text: str) -> list[dict]:
@@ -654,6 +902,82 @@ def automol_regression_model(
                         json_dict_file_nm=json_dict_file_nm)   
     return res   
 
+
+@mcp.tool()
+def get_server_status() -> Dict[str, Any]:
+    """
+    Get current MCP server status, health information, and operational metrics.
+    This tool follows MCP specification for server monitoring and diagnostics.
+    
+    Returns:
+        Dictionary containing comprehensive server status and system information.
+    """
+    import psutil
+    import platform
+    from datetime import datetime
+    
+    try:
+        # System information
+        memory = psutil.virtual_memory()
+        disk = psutil.disk_usage('/')
+        
+        status_info = {
+            "server_status": "operational",
+            "timestamp": datetime.now().isoformat(),
+            "server_info": SERVER_INFO,
+            "available_tools": [
+                "automol_regression_model",
+                "automol_classification_model", 
+                "list_tools",
+                "get_server_status"
+            ],
+            "available_resources": [
+                "molagent://docs/overview",
+                "molagent://docs/features",
+                "molagent://docs/examples",
+                "molagent://docs/api",
+                "molagent://docs/troubleshooting",
+                "molagent://docs/agentic"
+            ],
+            "available_prompts": [
+                "molagent"
+            ],
+            "system_information": {
+                "platform": platform.platform(),
+                "python_version": platform.python_version(),
+                "architecture": platform.architecture()[0],
+                "processor": platform.processor(),
+                "hostname": platform.node()
+            },
+            "resource_usage": {
+                "memory": {
+                    "total_gb": round(memory.total / (1024**3), 2),
+                    "available_gb": round(memory.available / (1024**3), 2),
+                    "used_percent": memory.percent
+                },
+                "disk": {
+                    "total_gb": round(disk.total / (1024**3), 2),
+                    "free_gb": round(disk.free / (1024**3), 2),
+                    "used_percent": round((disk.used / disk.total) * 100, 2)
+                },
+                "cpu_percent": psutil.cpu_percent(interval=1)
+            },
+            "health_checks": {
+                "memory_status": "good" if memory.percent < 80 else "warning" if memory.percent < 90 else "critical",
+                "disk_status": "good" if disk.used/disk.total < 0.8 else "warning" if disk.used/disk.total < 0.9 else "critical",
+                "overall_health": "healthy"
+            }
+        }
+        
+        return status_info
+        
+    except Exception as e:
+        return {
+            "server_status": "operational_with_warnings",
+            "error": f"Could not gather complete system information: {str(e)}",
+            "basic_info": SERVER_INFO,
+            "tools_available": True,
+        }
 
 if __name__ == "__main__":
     mcp.run(transport="sse", port=8001)
