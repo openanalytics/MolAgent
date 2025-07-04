@@ -14,7 +14,7 @@
 **MolAgent, a system-agnostic agentic AI framework designed for high-fidelity modeling of molecular properties in early-stage drug discovery**
 
 
-[Installation](#install-package) • [MCP server](#🛠️-mcp-server-architecture) • [Setup](#starting-mcp-servers-locally) • [Usage](#examples) • [Support](#contacts)
+[Installation](#install-package) • [MCP server](#-mcp-server-architecture) • [Setup](#starting-mcp-servers-locally) • [Usage](#examples) • [Support](#contacts)
 
 </div>
 
@@ -157,6 +157,7 @@ source molagent_env/bin/activate
 uv pip install -r requirements.txt
 ```
 Additionally, you can use the provided docker image, still requires the installation of AutoMol. 
+
 ---
 ### Starting MCP servers locally
 Using the molagent_env environment, you can start the servers locally, by running the following commands in the terminal. We advise to run the servers from the notebook directory, since the mcp servers will save files only starting from the directory they are run from. 
@@ -174,6 +175,7 @@ cd MCP/
 uv run mcp_server/automol_model_server.py
 ```
 In the terminal of the model server, you can follow the progress of the model training. 
+
 ---
 ### Agent integration
 After starting the server you can integrate them. For smolagents, see the notebooks in the MCP folder.
@@ -200,7 +202,6 @@ http://localhost:8000/sse
 as URL.
 
 ---
-
 ## 📄 License & Citation
 
 ### Citation
@@ -222,7 +223,6 @@ If you use MolAgent in your research, please cite our paper:
 See the [LICENSE](LICENSE) file for details.[![License](https://img.shields.io/badge/License-GPL--3.0-yellow.svg)](LICENSE)
 
 ---
-
 ## References
 MolAgent relies on the following open-source projects and tools:
 1. [scikit-learn](https://scikit-learn.org/stable/): Pedregosa, F., Varoquaux, G., Gramfort, A., Michel, V., Thirion, B., Grisel, O., ... & Duchesnay, É. (2011). Scikit-learn: Machine learning in Python. the Journal of machine Learning research, 12, 2825-2830.
