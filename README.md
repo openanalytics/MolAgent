@@ -204,7 +204,7 @@ as URL.
 ---
 ### Examples
 
-YOu can call the tools directly using the client functionality of FastMCP. We'll show some basic examples of how to call the tools available in the MCP servers. 
+You can call the tools directly using the client functionality of FastMCP. We'll show some basic examples of how to call the tools available in the MCP servers. 
 
 #### Check health of the modelling server
 
