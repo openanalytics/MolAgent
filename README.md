@@ -5,6 +5,7 @@
 
 <div align="center">
 
+[![MolAgent](https://img.shields.io/badge/MolAgent-1.0.0-red.svg)](https://github.com/openanalytics/MolAgent)
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://python.org)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-green.svg)](https://docs.anthropic.com/en/docs/agents-and-tools/mcp)
 [![AutoMol](https://img.shields.io/badge/AutoMol-Pipeline-orange.svg)](https://github.com/openanalytics/AutoMol)
@@ -251,7 +252,7 @@ import asyncio
 from fastmcp import Client
 
 # HTTP server
-client = Client("http://127.0.0.1:8001/sse",timeout=1e6)
+client = Client("http://127.0.0.1:8001/sse",timeout=1e10)
 
 async def main():
     async with client:
@@ -264,13 +265,15 @@ async def main():
                         'smiles_column': 'smiles',
                         'property': 'prop1',
                         'feature_keys': ['Bottleneck', 'rdkit'],
-                        'computational_load': 'moderate',
+                        'computational_load': 'cheap',
                         'json_dict_file_nm': 'out.json',
                         })
 
 asyncio.run(main())
 ```
 
+#### Integration with SmolAgents
+The notebook [gradio](MCP/Lipophilicity_AstraZeneca.ipynb) shows the integration using SmolAgents and the gradio interface. A list of examples for the multi-agentic framework is provided in the notebook: [examples](MCP/MolAgent_multiagent.ipynb)
 
 ## 📄 License & Citation
 
