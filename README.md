@@ -28,7 +28,30 @@ The current version of MolAgent focusing on introducing the agnetic compoments w
 - **⚡ On-the-fly Training**: Dynamic model development based on specific datasets and objectives
 - **🔧 MCP-Based Architecture**: the componenets are Built as **Model Context Protocol (MCP) servers** to be system-agnostic and ensuring compatibility with various agentic frameworks.
 
-**Our roadmap** includes expanding from the current componenents into a full multi agentic ecosystem of specialized agents including deep research, predective modeling, molecular generation and biopharmaceutical/pharmacokinetic characterization in the drug design process
+### 📄Citation
+
+**MolAgent: Biomolecular Property Estimation in the Agentic Era**
+
+Jose Carlos Gómez-Tamayo*, Joris Tavernier**, Roy Aerts***, Natalia Dyubankova*, Dries Van Rompaey*, Sairam Menon*, Marvin Steijaert**, Jörg Wegner*, Hugo Ceulemans*, Gary Tresadern*, Hans De Winter***, Mazen Ahmad* 
+> \*Johnson & Johnson \
+>  ** Open Analytics NV \
+>  ***Laboratory of Medicinal Chemistry, Department of Pharmaceutical Sciences, University of Antwerp
+
+**Funding**: This work was partly funded by the Flanders innovation & entrepreneurship (VLAIO) project HBC.2021.112. 
+
+```bibtex
+@article{molagent2025,
+  title={MolAgent: Biomolecular Property Estimation in the Agentic Era},
+  author={Gómez-Tamayo, Jose Carlos and Tavernier, Joris and Aerts, Roy and 
+          Dyubankova, Natalia and Van Rompaey, Dries and Menon, Sairam and 
+          Steijaert, Marvin and Wegner, Jörg and Ceulemans, Hugo and 
+          Tresadern, Gary and De Winter, Hans and Ahmad, Mazen},
+  journal={Preprint},
+  year={2025}
+}
+```
+
+Our **roadmap** includes expanding from the current componenents into a full multi agentic ecosystem of specialized agents including deep research, predective modeling, molecular generation and biopharmaceutical/pharmacokinetic characterization in the drug design process
 
 ### abstract
 
@@ -228,9 +251,8 @@ uv run mcp_server/automol_model_server.py
 In the terminal of the model server, you can follow the progress of the model training. 
 
 ---
-### Agent integration
-After starting the server you can integrate them. For smolagents, see the notebooks in the MCP folder.
-For Claude:
+### Claude Desktop integration
+
 ```{bash}
 claude mcp add --transport sse  automoldata https://localhost:8000/sse
 claude mcp add --transport sse automolmodelling https://localhost:8001/sse
@@ -253,8 +275,34 @@ http://localhost:8000/sse
 as URL.
 
 ---
-### Examples
+# Examples
 
+
+## Integration with SmolAgents
+The notebook [gradio](MCP/Lipophilicity_AstraZeneca.ipynb) shows the integration using SmolAgents and the gradio interface. A list of examples for the multi-agentic framework is provided in the notebook: [examples](MCP/MolAgent_multiagent.ipynb)
+
+The notebooks use some additional libraries:
+```{bash}
+uv pip install python-dotenv
+uv pip install transformers smolagents[all] fastmcp
+uv pip install jupyter jupyterlab
+```
+Create a file .env with the following content:
+
+```{bash}
+ANTHROPIC_API_KEY = xxxx
+HF_TOKEN=xxxx
+HF_HOME=hf_home/
+TOKENIZERS_PARALLELISM=false
+```
+You can add any key you want in the .env file.
+
+You can run jupyter-lab within the uv environment using the following command:
+```{bash}
+uv run --with jupyter jupyter lab
+```
+
+## Using FastMCP Client
 You can call the tools directly using the client functionality of FastMCP. We'll show some basic examples of how to call the tools available in the MCP servers. 
 
 #### Check health of the modelling server
@@ -361,51 +409,9 @@ async def main():
 asyncio.run(main())
 ```
 
-
-#### Integration with SmolAgents
-The notebook [gradio](MCP/Lipophilicity_AstraZeneca.ipynb) shows the integration using SmolAgents and the gradio interface. A list of examples for the multi-agentic framework is provided in the notebook: [examples](MCP/MolAgent_multiagent.ipynb)
-
-The notebooks use some additional libraries:
-```{bash}
-uv pip install python-dotenv
-uv pip install transformers smolagents[all] fastmcp
-uv pip install jupyter jupyterlab
-```
-Create a file .env with the following content:
-
-```{bash}
-ANTHROPIC_API_KEY = xxxx
-HF_TOKEN=xxxx
-HF_HOME=hf_home/
-TOKENIZERS_PARALLELISM=false
-```
-You can add any key you want in the .env file.
-
-You can run jupyter-lab within the uv environment using the following command:
-```{bash}
-uv run --with jupyter jupyter lab
-```
-
-
-## 📄 License & Citation
-
-### Citation
-If you use MolAgent in your research, please cite our paper:
-
-```bibtex
-@article{molagent2025,
-  title={MolAgent: Biomolecular Property Estimation in the Agentic Era},
-  author={Gómez-Tamayo, Jose Carlos and Tavernier, Joris and Aerts, Roy and 
-          Dyubankova, Natalia and Van Rompaey, Dries and Menon, Sairam and 
-          Steijaert, Marvin and Wegner, Jörg and Ceulemans, Hugo and 
-          Tresadern, Gary and De Winter, Hans and Ahmad, Mazen},
-  journal={Preprint},
-  year={2025}
-}
-```
 ### License
 
-See the [LICENSE](LICENSE) file for details.[![License](https://img.shields.io/badge/License-GPL--3.0-yellow.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-GPL--3.0-yellow.svg)](LICENSE) See the [LICENSE](LICENSE) file for details.
 
 ---
 ## References
@@ -420,4 +426,3 @@ MolAgent relies on the following open-source projects and tools:
 
 * **Developers**: Joris Tavernier and Marvin Steijaert and Gómez-Tamayo, Jose Carlos and Mazen Ahmad
 * **maintainers**: joris.tavernier@openanalytics.eu, Marvin.Steijaert@openanalytics.eu
-
