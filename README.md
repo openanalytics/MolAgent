@@ -202,6 +202,69 @@ http://localhost:8000/sse
 as URL.
 
 ---
+### Examples
+
+YOu can call the tools directly using the client functionality of FastMCP. We'll show some basic examples of how to call the tools available in the MCP servers. 
+
+#### Check health of the modelling server
+
+```python
+import asyncio
+from fastmcp import Client
+
+# HTTP server
+client = Client("http://127.0.0.1:8001/sse")
+
+async def main():
+    async with client:
+        # Basic server interaction
+        await client.ping()
+        
+        # List available operations
+        tools = await client.list_tools()
+        print(tools)
+        resources = await client.list_resources()
+        print(resources)
+        prompts = await client.list_prompts()
+        print(prompts)
+        
+        # Execute operations
+        server_health = await client.call_tool("get_server_status")
+        print(server_health)
+
+asyncio.run(main())
+```
+
+#### Regression example using CHEMBL data samples
+
+After unzipping the archived file in the folder Data, you can train a regression model using the following code.
+
+```python
+import asyncio
+from fastmcp import Client
+
+# HTTP server
+client = Client("http://127.0.0.1:8001/sse")
+
+async def main():
+    async with client:
+        # Basic server interaction
+        await client.ping()
+        
+        model_test = await client.call_tool("automol_regression_model",
+                    arguments={
+                        'data_file': '../Data/manuscript_data/ChEMBL_SMILES.csv',
+                        'smiles_column': 'smiles',
+                        'property': 'prop1',
+                        'feature_keys': ['Bottleneck', 'rdkit'],
+                        'computational_load': 'moderate',
+                        'json_dict_file_nm': 'out.json',
+                        })
+
+asyncio.run(main())
+```
+
+
 ## 📄 License & Citation
 
 ### Citation
