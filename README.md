@@ -20,7 +20,14 @@
 
 ## 🌟 Overview
 
-**MolAgent** is a cutting-edge, system-agnostic agentic AI framework designed for high-fidelity predictive modeling of molecular properties in early-stage drug discovery. Built as **Model Context Protocol (MCP) servers**, MolAgent empowers autonomous AI agents to construct expert-level machine learning models with minimal human intervention.
+**MolAgent is an evolving Multi-Agent System to support all aspects of early-stage drug discovery** 
+
+The current version of MolAgent focusing on introducing the agnetic compoments which are needed for delivering expert-level predictive modeling capabilities:
+- **🧠 Autonomous Model Construction**: AI agents that can train predictive models with human expert-level quality
+- **⚡ On-the-fly Training**: Dynamic model development based on specific datasets and objectives
+- **🔧 MCP-Based Architecture**: the componenets are Built as **Model Context Protocol (MCP) servers** to be system-agnostic and ensuring compatibility with various agentic frameworks.
+
+**Our roadmap** includes expanding from the current componenents into a full multi agentic ecosystem of specialized agents including deep research, predective modeling, molecular generation and biopharmaceutical/pharmacokinetic characterization in the drug design process
 
 ### abstract
 
@@ -244,7 +251,7 @@ import asyncio
 from fastmcp import Client
 
 # HTTP server
-client = Client("http://127.0.0.1:8001/sse")
+client = Client("http://127.0.0.1:8001/sse",timeout=1e6)
 
 async def main():
     async with client:
