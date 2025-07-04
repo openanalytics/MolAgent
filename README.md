@@ -14,7 +14,7 @@
 **MolAgent, a system-agnostic agentic AI framework designed for high-fidelity modeling of molecular properties in early-stage drug discovery**
 
 
-[Installation](#install-package) • [MCP server](#-mcp-server-architecture) • [Setup](#starting-mcp-servers-locally) • [Usage](#examples) • [Support](#contacts)
+[Installation](#install-package) • [MCP server](#%EF%B8%8F-mcp-server-architecture) • [Setup](#starting-mcp-servers-locally) • [Usage](#examples) • [Support](#contacts)
 
 </div>
 
