@@ -33,30 +33,30 @@ MolAgent leverages backend ML pipelines from the **[AutoMol](https://github.com/
 ```mermaid
 graph TB
     subgraph "MolAgent MCP Servers"
-        MS["`<p style="font-size: 12px; width:250px;text-align: left;"><b>automol_model_server.py</b>
-Main Modeling Engine
-    - Regression & Classification
-    - Feature selection
+        MS["`<p style="font-size: 12px; width:250px;text-align: left;"><b>automol_model_server.py</b><br>
+Main Modeling Engine<br>
+    - Regression & Classification<br>
+    - Feature selection<br>
     - Model Selection & Validation</p>`"]
-        DS["`<p style="font-size: 12px; width:250px;text-align: left;"><b>automol_data_server.py</b>
-Data retrieval & preprocessing
-    - TDC Integration
+        DS["`<p style="font-size: 12px; width:250px;text-align: left;"><b>automol_data_server.py</b><br>
+Data retrieval & preprocessing<br>
+    - TDC Integration<br>
     - 3D Structure Processing</p>`"]
     end
     
     subgraph "AutoMol Package"
-        AP["` <p style="font-size: 12px; width:250px;text-align: left;"><b>ML Pipeline</b>
-Robust predictive modelling
-    - Nested Cross-Validation
-    - Ensemble Methods
+        AP["` <p style="font-size: 12px; width:250px;text-align: left;"><b>ML Pipeline</b><br>
+Robust predictive modelling<br>
+    - Nested Cross-Validation<br>
+    - Ensemble Methods<br>
     - Advanced Feature Generators</p>`"]
     end
     
     subgraph "Agentic AI Systems"
-        AG["` <p style="font-size: 12px; width:250px;text-align: left;"><b>AI Agents</b>
-Claude, ChatGPT, Custom Agents
-    - Autonomous Decision Making
-    - Multi-Agent Orchestration
+        AG["` <p style="font-size: 12px; width:250px;text-align: left;"><b>AI Agents</b><br>
+Claude, ChatGPT, Custom Agents<br>
+    - Autonomous Decision Making<br>
+    - Multi-Agent Orchestration<br>
     - Dynamic Workflow Management </p>`"]
     end
     
