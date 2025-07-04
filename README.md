@@ -181,8 +181,8 @@ In the terminal of the model server, you can follow the progress of the model tr
 After starting the server you can integrate them. For smolagents, see the notebooks in the MCP folder.
 For Claude:
 ```{bash}
-claude mcp add --transport sse context7 https://localhost:8000/sse
-claude mcp add --transport sse context7 https://localhost:8001/sse
+claude mcp add --transport sse  automoldata https://localhost:8000/sse
+claude mcp add --transport sse automolmodelling https://localhost:8001/sse
 ```
 ---
 ### Tool Inspector
