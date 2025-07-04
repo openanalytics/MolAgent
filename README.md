@@ -118,7 +118,7 @@ The main modeling engine providing machine learning capabilities:
 
 
 ###  **Auxiliary Server: `automol_data_server.py`**
-We provided additionally a data server for data handling and preparation using the [Therapeutic Data commons](https://tdcommons.ai/) and processing 3D structure data:
+We provided additionally a data server for data handling and preparation using the [Therapeutic Data commons](https://tdcommons.ai/) (TDC) and processing 3D structure data:
 
 | Tool | Category | Description | Use Case |
 |------|----------|-------------|----------|
@@ -130,6 +130,52 @@ We provided additionally a data server for data handling and preparation using t
 You can use the 3D features if you provide 3d information in the form of an sdf file and pdb files. Al the different pdbs should be placed in the same folder. This folder should be provided. The sdf file contains all the structures of the compounds. There should be a property pdb referencing the name of the pdb file to be used. Next to the pdb name, the code also requires a property with the target value of the compound. For example, after unzipping <i>Data/manuscript_data.zip</i>,  <i>Data/manuscript_data/ABL/selected_dockings.sdf</i> contains the ligands and the pdbs are located in <i>Data/manuscript_data/ABL/pdbs</i>. 
 
 ---
+
+### 📊 Benchmark Performance
+
+MolAgent achieves **competitive performance** with expert-crafted models on TDC benchmarks using only "cheap" computational budget for the ADME group:
+
+Dataset | MolAgent | Best | Ranking | Metric 
+|---------|----------|------------|---------|---------|
+Caco2_Wang | 0.303+-0.002 | 0.276+-0.005 | 6th | MAE | 
+Hia_hou | 0.87+-0.006 | 0.989+-0.001 | 14th | AUROC | 
+pgp_broccatelli | 0.849+-0.005 | 0.938+-0.006 | 15th | AUROC  |
+Bioavailability_ma | 0.619+-0.028 | 0.748+-0.033 | 10th | AUROC | 
+Lipophilicity_astrazeneca | 0.309+-0.001 | 0.467+-0.006 | 🥇 1st | MAE | 
+Solubility_aqsoldb | 0.889+-0.001 | 0.761+-0.024 | 8th | MAE  |
+bbb_martins | 0.757+-0.004 | 0.916+-0.001 | 21st | AUROC  |
+Ppbr_az  |7.86+-0.3 | 7.526+-0.106 | 4th | MAE  |
+Vdss_lombardo  | 0.29+-0.175 | 0.713+-0.007 | 13th | Spearman | 
+Cyp2d6_veith | 0.386+-0.007 | 0.790+-0.001 | 14th | AUPRC  |
+Cyp3a4_veith | 0.704+-0.001 | 0.916+-0.000 | 14th | AUPRC  |
+Cyp2c9_veith | 0.605+-0.004 | 0.859+-0.001 | 15th | AUPRC  |
+Cyp2d6_substrate_carbonmangels | 0.526+-0.027 | 0.736+-0.025 | 13th | AUPRC | 
+Cyp3a4_substrate_carbonmangels | 0.613+-0.019 | 0.662+-0.031 | 10th | AUROC  |
+Cyp2c9_substrate_carbonmangels | 0.384+-0.017 | 0.441+-0.033 | 8th | AUPRC  |
+Half_life_obach | 0.332+-0.047 | 0.562+-0.008 | 7th | Spearman  |
+Clearance_microsome_az | 0.651+-0.04 | 0.630+-0.010 | 🥇 1st | Spearman  |
+Clearance_hepatocyte_az | 0.445+-0.028 | 0.498+-0.009 | 🥉 3rd | Spearman  |
+herg | 0.624+-0.02 | 0.880+-0.002 | 17th | AUROC  |
+ames | 0.793+-0.005 | 0.871+-0.002 | 13th | AUROC  |
+dili | 0.778+-0.025 | 0.925+-0.005 | 16th | AUROC | 
+Ld50_zhu | 0.606+-0.0 | 0.552+-0.009 | 🥉 3rd | MAE |
+
+<p style="font-size: 10px";> Table 1. Performance of MolAgent under “cheap” computational budget across ADMET tasks from the Therapeutics
+Data Commons (TDC) benchmark. Results are reported as mean ± standard deviation over 5 independent runs
+(different seeds). The “MolAgent” column denotes MolAgent’s performance, whereas “Best” corresponds to the best
+result achieved by existing human-fine-tuned models. “Ranking” indicates MolAgent’s position relative to all
+evaluated baselines in TDC leaderboard. The “Metric” column specifies the evaluation criterion: mean absolute error
+(MAE; lower values are better) for regression tasks, area under the receiver operating characteristic curve (AUROC;
+higher values are better), area under the precision-recall curve (AUPRC; higher values are better), and Spearman
+correlation coefficient (higher values are better). MolAgent attains competitive accuracy compared to human-fine-
+tuned models while operating with substantially lower computational overhead.</p>
+
+
+> 📈 **Results obtained with "cheap" computational budget** - demonstrating efficiency with competitive accuracy!
+
+
+---
+
 ## 🚀 Quick Start
 
 ### Install package
@@ -153,9 +199,6 @@ uv pip install streamlit
 uv pip install PyTDC
 uv pip install torch_geometric prolif lightning
 uv pip install rdkit==2024.3.5
-uv pip install transformers smolagents[all] fastmcp
-uv pip install jupyter jupyterlab
-uv run --with jupyter jupyter lab
 ```
 Alternatively,you can use the requirements file:
 ```{bash}
@@ -272,8 +315,77 @@ async def main():
 asyncio.run(main())
 ```
 
+#### Lipophilicity example from the Therapeutics Data Commons
+
+This example first download the model using the data MCP server and next use the model MCP server to fit a predictive model. 
+
+```python
+import asyncio
+from fastmcp import Client
+
+# HTTP server
+data_client = Client("http://127.0.0.1:8000/sse",timeout=1e10)
+model_client = Client("http://127.0.0.1:8001/sse",timeout=1e10)
+
+async def main():
+    async with data_client:
+        # Basic server interaction
+        await data_client.ping()
+
+        data_return_statement = await data_client.call_tool("retrieve_tdc_data",
+                    arguments={
+                        'save_dir': 'tdc_data',
+                        'dataset_name': 'Lipophilicity_AstraZeneca',
+                        'data_dir': '.',
+                        'file_nm': 'lipo.csv',
+                        'group': 'ADME'
+                        })
+        print(data_return_statement)
+        
+
+    async with model_client:
+        # Basic server interaction
+        await model_client.ping()
+
+        model_return_statement = await model_client.call_tool("automol_regression_model",
+                    arguments={
+                        'data_file': 'lipo.csv',
+                        'smiles_column': 'Drug',
+                        'property': 'Y',
+                        'feature_keys': ['Bottleneck'],
+                        'computational_load': 'cheap',
+                        'json_dict_file_nm': 'lipo.json',
+                        })
+        print(model_return_statement)
+
+asyncio.run(main())
+```
+
+
 #### Integration with SmolAgents
 The notebook [gradio](MCP/Lipophilicity_AstraZeneca.ipynb) shows the integration using SmolAgents and the gradio interface. A list of examples for the multi-agentic framework is provided in the notebook: [examples](MCP/MolAgent_multiagent.ipynb)
+
+The notebooks use some additional libraries:
+```{bash}
+uv pip install python-dotenv
+uv pip install transformers smolagents[all] fastmcp
+uv pip install jupyter jupyterlab
+```
+Create a file .env with the following content:
+
+```{bash}
+ANTHROPIC_API_KEY = xxxx
+HF_TOKEN=xxxx
+HF_HOME=hf_home/
+TOKENIZERS_PARALLELISM=false
+```
+You can add any key you want in the .env file.
+
+You can run jupyter-lab within the uv environment using the following command:
+```{bash}
+uv run --with jupyter jupyter lab
+```
+
 
 ## 📄 License & Citation
 
@@ -306,10 +418,6 @@ MolAgent relies on the following open-source projects and tools:
 
 ## Contacts
 
-* **Authors**: Gómez-Tamayo, Jose Carlos and Tavernier, Joris and Aerts, Roy and 
-          Dyubankova, Natalia and Van Rompaey, Dries and Menon, Sairam and 
-          Steijaert, Marvin and Wegner, Jörg and Ceulemans, Hugo and 
-          Tresadern, Gary and De Winter, Hans and Ahmad, Mazen
 * **Developers**: Joris Tavernier and Marvin Steijaert and Gómez-Tamayo, Jose Carlos and Mazen Ahmad
-* **Contact**: joris.tavernier@openanalytics.eu, Marvin.Steijaert@openanalytics.eu
+* **maintainers**: joris.tavernier@openanalytics.eu, Marvin.Steijaert@openanalytics.eu
 
