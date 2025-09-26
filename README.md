@@ -18,8 +18,8 @@
 
 </div>
 
-## **The current version of MolAgent focusing on introducing the agnetic compoments which are needed for delivering expert-level predictive modeling capabilities:**
-- **🧠 Autonomous Model Construction**: AI agents that can train predictive models with human expert-level quality
+## **The current version of MolAgent focuses on introducing the agentic components which are needed for delivering expert-level predictive modeling capabilities:**
+- **🧠 Autonomous Model Construction**: AI agents that can train predictive models with expert-level quality
 - **⚡ On-the-fly Training**
 - **🔧 MCP-Based Architecture**: the componenets are Built as **Model Context Protocol (MCP) servers** to be system-agnostic and ensuring compatibility with various agentic frameworks.
 
@@ -47,6 +47,12 @@ Jose Carlos Gómez-Tamayo*, Joris Tavernier**, Roy Aerts***, Natalia Dyubankova*
 ```
 
 Our **roadmap** includes expanding from the current componenents into a full multi agentic ecosystem of specialized agents including deep research, predective modeling, molecular generation and biopharmaceutical/pharmacokinetic characterization in the drug design process
+
+### Quick Jumps
+* [Installation](#install-package): Jump to installation of MolAgent
+* [Setup](#starting-mcp-servers-locally): Jump to starting the MCP servers
+* [Usage](#examples): Jump to the example usage of MolAgent, includes a Gradio Chatbot
+* [AutoMol](https://github.com/openanalytics/AutoMol/tree/main): Jump to the ML backend AutoMol and its [Tutorials](https://github.com/openanalytics/AutoMol/tree/main/Tutorials)
 
 ### abstract
 
@@ -197,58 +203,65 @@ tuned models while operating with substantially lower computational overhead.</p
 ## 🚀 Quick Start
 
 ### Install package
+Throughout the README, we assume that the terminal commands start from the root directory of the repository.
+#### Linux
 To use MolAgent, include the git submodule of AutoMol by cloning the repository with submodules
-```{bash}
+```bash
 git clone --recurse-submodules https://github.com/openanalytics/MolAgent
 ```
+We've included an install script for your convenience
+```bash
+chmod +x install.sh
+./install.sh
+```
+All the required packages can also be installed directly using the following commands. 
+
 For automated pdf generation [wkhtmltopdf](https://wkhtmltopdf.org/) is used. On linux install with
-```{bash}
+```bash
 sudo apt-get install wkhtmltopdf
 ```
-We recommend using an uv environment for this package. The MCP server uses AutoMol which is cloned from the repository. 
-```{bash}
-pip install uv
-uv venv molagent_env --python 3.12
-source molagent_env/bin/activate
-uv pip install AutoMol/automol_resources/
-uv pip install AutoMol/automol/
-uv pip install molfeat
-uv pip install streamlit
-uv pip install PyTDC
-uv pip install torch_geometric prolif lightning
-uv pip install rdkit==2024.3.5
-```
-Alternatively,you can use the requirements file:
-```{bash}
+We recommend using an uv environment for this package. The MCP server uses AutoMol which is cloned from the repository. Now, you can use the requirements file:
+```bash
 pip install uv
 uv venv molagent_env --python 3.12
 source molagent_env/bin/activate
 uv pip install -r requirements.txt
+uv pip install pytdc
+uv pip install rdkit==2024.3.5
 ```
-Additionally, you can use the provided docker image, still requires the installation of AutoMol. 
+#### Windows
+
+There is an installation script for Windows, make sure to have python installed. Note that all tests and experiments were done in Linux.
+```cmd
+install.bat
+```
 
 ---
 ### Starting MCP servers locally
-Using the molagent_env environment, you can start the servers locally, by running the following commands in the terminal. We advise to run the servers from the notebook directory, since the mcp servers will save files only starting from the directory they are run from. 
+Using the molagent_env environment, you can start the servers locally, by running the following commands in different terminals. We advise to run the servers from the notebook directory, since the mcp servers will save files only starting from the directory they are run from. 
 
 Start data training server locally on port 8000: 
-```{bash}
+```bash
 source molagent_env/bin/activate
 cd MCP/
 uv run mcp_server/automol_data_server.py
 ```
 Start model training server locally  on port 8001:
-```{bash}
+```bash
 source molagent_env/bin/activate
 cd MCP/
 uv run mcp_server/automol_model_server.py
 ```
 In the terminal of the model server, you can follow the progress of the model training. 
 
+### Adding functionality to the MCP servers
+
+The MCP model training server is based on [AutoMol](https://github.com/openanalytics/AutoMol/tree/main/), but this server does not have all the flexibility from the different AutoMol [Tutorials](https://github.com/openanalytics/AutoMol/tree/main/Tutorials). In order to adjust or add functionality supported by AutoMol but not yet present, one can easily adopt the server and the functions ([src](MCP/mcp_server/automol_model_server.py) and [automol_functions](MCP/Tools/training_tools.py)).  
+
 ---
 ### Claude Desktop integration
 
-```{bash}
+```bash
 claude mcp add --transport sse  automoldata https://localhost:8000/sse
 claude mcp add --transport sse automolmodelling https://localhost:8001/sse
 ```
@@ -256,7 +269,7 @@ claude mcp add --transport sse automolmodelling https://localhost:8001/sse
 ### Tool Inspector
 
 You can start the MCP tool inspector by running:
-```
+```bash
 npx @modelcontextprotocol/inspector
 ```
 Make sure to copy the session token and set it as Proxy Session Token (under configuration) in the inspector GUI. Then set transport type as SSE with either 
@@ -271,32 +284,64 @@ as URL.
 
 ---
 # Examples
-
+In this section, we show how to use the MCP servers within the SmolAgents framework or call them directly using aiohttp. 
 
 ## Integration with SmolAgents
-The notebook [gradio](MCP/Lipophilicity_AstraZeneca.ipynb) shows the integration using SmolAgents and the gradio interface. A list of examples for the multi-agentic framework is provided in the notebook: [examples](MCP/MolAgent_multiagent.ipynb)
+The notebook [gradio](MCP/Lipophilicity_AstraZeneca.ipynb) shows the integration using SmolAgents and the gradio interface. A list of examples for the multi-agentic framework is provided in the notebook: [examples](MCP/MolAgent_multiagent.ipynb). Figure 2 Depicts the structure of the agents used in these examples, see [MCP server architecture](#primary-server-automol_model_serverpy) for more details on the different tools. 
+<img src="Gifs/Manager Agent.png" width="600" height="400">
 
-The notebooks use some additional libraries:
-```{bash}
-uv pip install python-dotenv
-uv pip install transformers smolagents[all] fastmcp
-uv pip install jupyter jupyterlab
-```
-Create a file .env with the following content:
+<sup> Figure 2. The Hierarchy of Agents in the examples.</sup>
 
-```{bash}
+
+To use LLMs, create a credential file .env with the following content adapted using your personal keys:
+
+```bash
 ANTHROPIC_API_KEY = xxxx
 HF_TOKEN=xxxx
 HF_HOME=hf_home/
 TOKENIZERS_PARALLELISM=false
+OPENROUTER_API_KEY = xxxx
+TAVILY_API_KEY = xxx
+OPENROUTER_API_BASE=https://openrouter.ai/api/v1
+MODEL_ID = openrouter/meta-llama/llama-4-maverick
+#MODEL_ID = openrouter/z-ai/glm-4.5
+#MODEL_ID = openrouter/anthropic/claude-sonnet-4
+#MODEL_ID = openrouter/anthropic/claude-3.5-haiku
+#haiku directly
+#MODEL_ID = claude-3-5-haiku-20241022
 ```
-You can add any key you want in the .env file.
+You can add any key you want in the .env file. Only in the file [GradioMolagent.py](MCP/GradioMolAgent.py), the environment variable MODEL_ID is used in a LiteLLMModel. This chatbot also uses the tavily search tool. Note that Tavily search tool has a free but limited research option. 
 
 You can run jupyter-lab within the uv environment using the following command:
-```{bash}
+```bash
 uv run --with jupyter jupyter lab
 ```
+### Gradio chatclient
 
+After starting the MCP servers as shown, you can start a smolagents chatbot powered by Gradio ([GradioMolagent](MCP/GradioMolAgent.py)).
+```bash
+source molagent_env/bin/activate
+cd MCP
+uv run GradioMolAgent.py 
+```
+The app is by default hosted at [http://127.0.0.1:7860
+](http://127.0.0.1:7860). You can use the app from your browser. 
+The following gif shows how you can interact with MolAgent. 
+
+![question](Gifs/question_2.gif)
+
+We've stopped the video after the MCP server started training a model. Note that you can see that model started training from the terminal where the model training MCP server is started. The following video shows the results after the model was trained. 
+
+![training](Gifs/training_2.gif)
+
+In the end, we asked to created a scatterplot using the predicted values. 
+
+![plot](Gifs/plot_2.gif)
+
+### Notebooks
+The notebooks are located in the folder MCP/. 
+* The notebook [Lipophilicity_AstraZeneca](MCP/Lipophilicity_AstraZeneca.ipynb) uses the default gradio app from smolagents. The propmpt to train a model for the data set Lipophilicity_AstraZeneca from TDC is provided. 
+* The notebook [MolAgent_multiagent](MCP/MolAgent_multiagent.ipynb) uses MolAgent directly without a chatbot, this notebook contains multiple questions to MolAgent, including the tyrosine-protein kinase ABL1 example from the paper.
 ## Using FastMCP Client
 You can call the tools directly using the client functionality of FastMCP. We'll show some basic examples of how to call the tools available in the MCP servers. 
 

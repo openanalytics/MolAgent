@@ -1,19 +1,40 @@
 from Tools.tdc_tool import retrieve_tdc_data, retrieve_tdc_groups, retrieve_tdc_group_datasets 
-from Tools.dataset_tools import retrieve_3d_data, data_answer, check_valid_smiles
+from Tools.dataset_tools import retrieve_3d_data, data_answer, check_valid_smiles, check_smiles_string
 from Tools.training_tools import load_data_for_training, train_automol_model, create_validation_split, get_feature_generators, add_affinity_graph_feature_generator, training_answer
 from Tools.training_tools import prepare_data_for_modeling, evaluate_automol_model, add_prolif_feature_generator
 from Tools.evaluation_tools import read_json_file, write_to_file, wait_for_llm_rate
-
+import os 
 from smolagents import (
     CodeAgent,
     ToolCallingAgent,
-    ToolCollection
+    LiteLLMModel,
+    ToolCollection,
+    WebSearchTool,
+    DuckDuckGoSearchTool
+)
+from scripts.text_inspector_tool import TextInspectorTool
+
+from Tools.chembl_smolagents_tools import (
+		ChEMBLMoleculeSearchTool,
+        chembl_activity_search,
+        chembl_target_search,
+        chembl_similarity_search,
+        chembl_drug_indication_search,
+        chembl_assay_search,
+        chembl_molecule_image,
+        ChEMBLMolecularUtilsTool,
+        chembl_tissue_search,
+        chembl_cell_line_search,
+        chembl_document_search,
+        chembl_list_available_resources
+
 )
 
 AUTHORIZED_IMPORTS = [
     "requests",
     "zipfile",
     "os",
+    "globals",
     "pandas",
     "numpy",
     "sympy",
@@ -41,20 +62,47 @@ AUTHORIZED_IMPORTS = [
     "rdkit",
     "rdkit.Chem",
     "rdkit.Chem.Descriptors",
+    "rdkit.Chem.Crippen",
     "stats",
     "csv",
     "posixpath",
     "matplotlib.style",
     "matplotlib.pyplot",
     "matplotlib.show",
-    "matplotlib"
+    "matplotlib",
+    "typing"
 ]
+
+text_limit = 20000
+
+
 
 def get_data_agent(model=None,tools=None,max_steps=10):
     if tools is None:
         tools=[retrieve_tdc_data, retrieve_tdc_groups, retrieve_tdc_group_datasets, retrieve_3d_data]
+
+    web_tools_for_agent = [
+        DuckDuckGoSearchTool(max_results=5),
+        TextInspectorTool(model, text_limit)
+    ]
+	
+    CHEMBL_TOOLS= [
+        ChEMBLMoleculeSearchTool(),
+        chembl_activity_search,
+        chembl_target_search,
+        chembl_similarity_search,
+        chembl_drug_indication_search,
+        chembl_assay_search,
+        chembl_molecule_image,
+        ChEMBLMolecularUtilsTool(),
+        chembl_tissue_search,
+        chembl_cell_line_search,
+        chembl_document_search,
+        chembl_list_available_resources
+    ]
+
     data_agent = CodeAgent(
-        tools=[ *tools, data_answer, check_valid_smiles, write_to_file, wait_for_llm_rate],
+        tools=[ *tools,*web_tools_for_agent,*CHEMBL_TOOLS, data_answer, check_valid_smiles, check_smiles_string, write_to_file],
         model=model,
         max_steps=max_steps,
         name="dataset_loader_agent",
@@ -95,15 +143,13 @@ def get_data_agent(model=None,tools=None,max_steps=10):
     - Report number of unique molecules
 
     ### 3. SMILES Validation & Molecular Processing
-    - Validate SMILES strings using RDKit (report invalid SMILES count)
-    - Check for and handle duplicated molecules
-    - Standardize SMILES format (canonical SMILES)
+    - Validate SMILES strings using the tool check_valid_smiles
     - Calculate basic molecular descriptors if relevant (MW, LogP, TPSA, etc.)
     - Report any molecules that couldn't be processed
 
     ### 4. Data Cleaning
     - Handle missing values based on context (removal or imputation)
-    - Remove invalid SMILES
+    - Remove invalid SMILES, use your tool check_smiles_string
     - Address outliers in the target variable if appropriate
     - Handle imbalanced data if it's a classification problem
 
@@ -143,7 +189,7 @@ def get_mcp_model_agent(model=None,tools=None,max_steps=10):
         return get_model_agent(model,max_steps)
     else:
         model_agent = CodeAgent(
-            tools=[*tools, check_valid_smiles, read_json_file, write_to_file, wait_for_llm_rate],
+            tools=[*tools, check_valid_smiles, check_smiles_string, read_json_file, write_to_file],
             model=model,
             max_steps=max_steps,
             name="model_training_agent",
@@ -158,6 +204,7 @@ def get_mcp_model_agent(model=None,tools=None,max_steps=10):
             Your request should be a real sentence. You will receive a directory where the performance metrics dictionary is saved as json file. This are important for further processing.""",
             additional_authorized_imports=AUTHORIZED_IMPORTS,
             provide_run_summary=False,
+            add_base_tools=False
         )
         model_agent.prompt_templates["managed_agent"]["task"] = """
         # Automol Model Training Agent
@@ -286,7 +333,7 @@ def get_model_agent(model=None,max_steps=10):
     model_agent = CodeAgent(
         tools=[load_data_for_training, check_valid_smiles, prepare_data_for_modeling, train_automol_model, create_validation_split,
                get_feature_generators, add_prolif_feature_generator, add_affinity_graph_feature_generator, evaluate_automol_model, training_answer,
-                 check_valid_smiles, read_json_file, write_to_file],
+                 check_smiles_string, read_json_file, write_to_file],
         model=model,
         max_steps=max_steps,
         name="model_training_agent",
@@ -301,6 +348,7 @@ def get_model_agent(model=None,max_steps=10):
         Your request should be a real sentence. You will receive a directory where the performance metrics dictionary is saved as json file. This are important for further processing.""",
         additional_authorized_imports=AUTHORIZED_IMPORTS,
         provide_run_summary=False,
+        add_base_tools=False
     )
     model_agent.prompt_templates["managed_agent"]["task"] = """
     You're a helpful agent named '{{name}}'.

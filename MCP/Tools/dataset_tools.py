@@ -46,7 +46,24 @@ def check_valid_smiles(df:PandasDataFrame=None, smiles_column:str='smiles')-> st
           
     smiles_validity = df[smiles_column].apply(is_valid_smiles)                                                              
     return smiles_validity.mean()>0.5                                                           
-                                                                                     
+
+@tool
+def check_smiles_string(smiles:str=None)-> bool:
+    """
+    A tool that verifies if a provided smiles string is valid! Do not try to validate a smiles string yourself, use this tool!
+
+    Args:
+        smiles: the smiles string
+    """
+    from rdkit import Chem
+    try:
+        mol=Chem.MolFromSmiles(smiles) 
+        if mol is not None:
+            return True
+        else:
+            return False
+    except Exception:
+        return False      
 
 @tool
 def retrieve_3d_data(sdf_file:str='ligands.sdf',

@@ -9,7 +9,8 @@ aiosqlite==0.21.0
 automol @ file://AutoMol/automol
 automol-resources @ file://AutoMol/automol_resources
 babel==2.17.0
-bokeh==3.7.3
+bokeh==2.4.3
+chembl-webresource-client==0.10.9
 fastapi==0.115.14
 fastjsonschema==2.21.1
 fastmcp==2.10.1
@@ -22,18 +23,26 @@ jupyterlab==4.4.4
 lightgbm==4.6.0
 lightning==2.5.2
 lightning-utilities==0.14.3
+mammoth==1.11.0
 mcp==1.10.1
 mcpadapt==0.1.10
 mdanalysis==2.9.0
 molfeat==0.11.0
 numpy==1.26.4
+pathvalidate==3.3.1
+pdfminer-six==20250506
 prolif==2.0.3
+puremagic==1.30
+python-dotenv==1.1.1
+python-pptx==1.0.2
 pytorch-lightning==2.5.2
 rdkit==2024.3.5
 scikit-learn==1.7.0
 scipy==1.16.0
 smolagents[all]==1.19.0
+SpeechRecognition==3.14.3
 streamlit==1.46.1
+tavily-python==0.7.12
 torch==2.7.1
 torch-geometric==2.6.1
 torchmetrics==1.7.3
@@ -41,3 +50,4 @@ torchvision==0.22.1
 transformers==4.50.3
 uvicorn==0.35.0
 xgboost==3.0.2
+youtube-transcript-api==1.2.2
