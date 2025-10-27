@@ -36,13 +36,16 @@ Jose Carlos Gómez-Tamayo*, Joris Tavernier**, Roy Aerts***, Natalia Dyubankova*
 
 ```bibtex
 @article{molagent2025,
-  title={MolAgent: Biomolecular Property Estimation in the Agentic Era},
-  author={Gómez-Tamayo, Jose Carlos and Tavernier, Joris and Aerts, Roy and 
-          Dyubankova, Natalia and Van Rompaey, Dries and Menon, Sairam and 
-          Steijaert, Marvin and Wegner, Jörg and Ceulemans, Hugo and 
-          Tresadern, Gary and De Winter, Hans and Ahmad, Mazen},
-  journal={Preprint},
-  year={2025}
+author = {Gómez-Tamayo, Jose Carlos and Tavernier, Joris and Aerts, Roy and Dyubankova, Natalia and Van Rompaey, Dries and Menon, Sairam and Steijaert, Marvin and Wegner, J{\"o}rg Kurt and Ceulemans, Hugo and Tresadern, Gary and De Winter, Hans and Ahmad, Mazen},
+title = {MolAgent: Biomolecular Property Estimation in the Agentic Era},
+journal = {Journal of Chemical Information and Modeling},
+volume = {65},
+number = {20},
+pages = {10808-10818},
+year = {2025},
+doi = {10.1021/acs.jcim.5c01938},
+note ={PMID: 41099298},
+URL = {https://doi.org/10.1021/acs.jcim.5c01938}
 }
 ```
 
