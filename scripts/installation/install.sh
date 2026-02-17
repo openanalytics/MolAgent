@@ -66,7 +66,7 @@ while [[ $# -gt 0 ]]; do
             echo "Usage: $0 [environment_name] [python_version]"
             echo ""
             echo "Options:"
-            echo "  environment_name    Name for virtual environment (default: molagent_env)"
+            echo "  environment_name    Name for virtual environment (default: .venv)"
             echo "  python_version      Python version to use (default: 3.12)"
             echo "  -h, --help         Show this help message"
             echo ""

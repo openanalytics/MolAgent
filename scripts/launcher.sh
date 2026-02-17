@@ -86,7 +86,7 @@ show_status() {
     echo
 
     # Check virtual environment
-    if [ -d "molagent_env" ]; then
+    if [ -d ".venv" ]; then
         echo -e "${GREEN}[✓] Virtual environment: Found${NC}"
     else
         echo -e "${RED}[✗] Virtual environment: Not found${NC}"

@@ -32,8 +32,8 @@ log "Starting MolAgent Data Server..."
 echo "================================"
 
 # Check if virtual environment exists
-if [ ! -f "molagent_env/bin/activate" ]; then
-    error "Virtual environment 'molagent_env' not found!"
+if [ ! -f ".venv/bin/activate" ]; then
+    error "Virtual environment '.venv' not found!"
     error "Please run the installation script first:"
     error "  ./install.sh"
     exit 1
@@ -48,7 +48,7 @@ fi
 
 # Activate virtual environment
 info "Activating virtual environment..."
-source molagent_env/bin/activate
+source .venv/bin/activate
 
 # Check if .env file exists
 if [ ! -f ".env" ]; then

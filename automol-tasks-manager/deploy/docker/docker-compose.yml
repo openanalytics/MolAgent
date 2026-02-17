@@ -1,0 +1,142 @@
+# AutoMol Docker Compose Configuration
+#
+# Run from AutoMol root directory:
+#   docker-compose -f automol-claude-plugin/deploy/docker/docker-compose.yml up -d
+#
+# Usage:
+#   docker-compose up -d              # Start CPU service
+#   docker-compose --profile gpu up   # Start with GPU support
+#   docker-compose logs -f            # View logs
+#   docker-compose down               # Stop services
+
+version: '3.8'
+
+services:
+  # ==========================================================================
+  # AutoMol Prediction API (CPU)
+  # ==========================================================================
+  automol-api:
+    build:
+      context: ../../..
+      dockerfile: automol-claude-plugin/deploy/docker/Dockerfile
+    image: automol-server:latest
+    container_name: automol-api
+    restart: unless-stopped
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      # Mount your trained models directory
+      - ${MODELS_DIR:-../../../models}:/models:ro
+      # Mount automol_resources for pre-trained encoders (optional override)
+      - ${RESOURCES_DIR:-../../../automol_resources}:/app/automol_resources:ro
+
+    environment:
+      - MODEL_PATH=/models/${MODEL_NAME:-model.pt}
+      - HOST=0.0.0.0
+      - PORT=8000
+      - WORKERS=${WORKERS:-1}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - USE_GPU=false
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '1'
+          memory: 4G
+
+  # ==========================================================================
+  # AutoMol Prediction API (GPU)
+  # ==========================================================================
+  automol-api-gpu:
+    build:
+      context: ../../..
+      dockerfile: automol-claude-plugin/deploy/docker/Dockerfile
+    image: automol-server:latest
+    container_name: automol-api-gpu
+    restart: unless-stopped
+
+    ports:
+      - "8001:8000"
+
+    volumes:
+      - ${MODELS_DIR:-../../../models}:/models:ro
+      - ${RESOURCES_DIR:-../../../automol_resources}:/app/automol_resources:ro
+
+    environment:
+      - MODEL_PATH=/models/${MODEL_NAME:-model.pt}
+      - HOST=0.0.0.0
+      - PORT=8000
+      - WORKERS=1
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - USE_GPU=true
+
+    # Enable GPU access
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+    profiles:
+      - gpu  # Only start with: docker-compose --profile gpu up
+
+  # ==========================================================================
+  # Nginx Reverse Proxy (Optional)
+  # ==========================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: automol-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - automol-api
+    profiles:
+      - with-nginx
+
+  # ==========================================================================
+  # Redis Cache (Optional - for caching predictions)
+  # ==========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: automol-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    profiles:
+      - with-cache
+
+# ==========================================================================
+# Volumes
+# ==========================================================================
+volumes:
+  redis-data:
+
+# ==========================================================================
+# Networks
+# ==========================================================================
+networks:
+  default:
+    name: automol-network

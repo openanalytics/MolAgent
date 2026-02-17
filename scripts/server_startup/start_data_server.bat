@@ -6,8 +6,8 @@ echo Starting MolAgent Data Server...
 echo ================================
 
 REM Check if virtual environment exists
-if not exist "molagent_env\Scripts\activate.bat" (
-    echo [ERROR] Virtual environment 'molagent_env' not found!
+if not exist ".venv\Scripts\activate.bat" (
+    echo [ERROR] Virtual environment '.venv' not found!
     echo Please run the installation script first:
     echo   install.bat
     echo.
@@ -26,7 +26,7 @@ if not exist "MCP" (
 
 REM Activate virtual environment
 echo [INFO] Activating virtual environment...
-call molagent_env\Scripts\activate.bat
+call .venv\Scripts\activate.bat
 
 REM Check if .env file exists
 if not exist ".env" (

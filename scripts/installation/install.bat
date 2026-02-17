@@ -13,7 +13,7 @@ set "NC=[0m"
 
 REM Default values
 set "ENV_NAME=%~1"
-if "%ENV_NAME%"=="" set "ENV_NAME=molagent_env"
+if "%ENV_NAME%"=="" set "ENV_NAME=.venv"
 
 set "PYTHON_VER=%~2"
 if "%PYTHON_VER%"=="" set "PYTHON_VER=3.12"

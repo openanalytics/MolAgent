@@ -89,7 +89,7 @@ echo ============================
 echo.
 
 REM Check virtual environment
-if exist "molagent_env\Scripts\activate.bat" (
+if exist ".venv\Scripts\activate.bat" (
     echo [✓] Virtual environment: Found
 ) else (
     echo [✗] Virtual environment: Not found

@@ -226,8 +226,8 @@ sudo apt-get install wkhtmltopdf
 We recommend using an uv environment for this package. The MCP server uses AutoMol which is cloned from the repository. Now, you can use the requirements file:
 ```bash
 pip install uv
-uv venv molagent_env --python 3.12
-source molagent_env/bin/activate
+uv venv .venv --python 3.12
+source .venv/bin/activate
 uv pip install -r requirements.txt
 uv pip install pytdc
 uv pip install rdkit==2024.3.5
@@ -241,17 +241,17 @@ install.bat
 
 ---
 ### Starting MCP servers locally
-Using the molagent_env environment, you can start the servers locally, by running the following commands in different terminals. We advise to run the servers from the notebook directory, since the mcp servers will save files only starting from the directory they are run from. 
+Using the .venv environment, you can start the servers locally, by running the following commands in different terminals. We advise to run the servers from the notebook directory, since the mcp servers will save files only starting from the directory they are run from.
 
-Start data training server locally on port 8000: 
+Start data training server locally on port 8000:
 ```bash
-source molagent_env/bin/activate
+source .venv/bin/activate
 cd MCP/
 uv run mcp_server/automol_data_server.py
 ```
 Start model training server locally  on port 8001:
 ```bash
-source molagent_env/bin/activate
+source .venv/bin/activate
 cd MCP/
 uv run mcp_server/automol_model_server.py
 ```
@@ -268,6 +268,19 @@ The MCP model training server is based on [AutoMol](https://github.com/openanaly
 claude mcp add --transport sse  automoldata https://localhost:8000/sse
 claude mcp add --transport sse automolmodelling https://localhost:8001/sse
 ```
+
+### Claude Code Plugin
+
+You can also use MolAgent as a Claude Code plugin with the automol-tasks-manager:
+
+```bash
+claude --plugin-dir ./automol-tasks-manager/
+```
+
+This provides two skills:
+- `train-pipeline`: Train ensemble stacking models on SMILES data
+- `predict`: Make predictions using trained models
+
 ---
 ### Tool Inspector
 
@@ -323,9 +336,9 @@ uv run --with jupyter jupyter lab
 
 After starting the MCP servers as shown, you can start a smolagents chatbot powered by Gradio ([GradioMolagent](MCP/GradioMolAgent.py)).
 ```bash
-source molagent_env/bin/activate
+source .venv/bin/activate
 cd MCP
-uv run GradioMolAgent.py 
+uv run GradioMolAgent.py
 ```
 The app is by default hosted at [http://127.0.0.1:7860
 ](http://127.0.0.1:7860). You can use the app from your browser. 

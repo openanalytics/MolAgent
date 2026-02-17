@@ -1,0 +1,22 @@
+{
+  "name": "automol",
+  "version": "1.0.0",
+  "description": "Claude Code plugin for AutoMol drug discovery pipeline - train molecular property prediction models from SMILES data using ensemble stacking methods",
+  "author":
+  	{"name": "AutoMol Team"},
+  "repository": "https://github.com/openanalytics/AutoMol",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/setup-automol-env.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "skills": ["./skills/train-pipeline", "./skills/predict"],
+  "commands": ["./commands/automol-status.md"]
+}
