@@ -23,6 +23,85 @@
 - **⚡ On-the-fly Training**
 - **🔧 MCP-Based Architecture**: the componenets are Built as **Model Context Protocol (MCP) servers** to be system-agnostic and ensuring compatibility with various agentic frameworks.
 
+
+### Update February 2026: Claude Code Plugin
+
+You can also use MolAgent as a Claude Code plugin with the automol-tasks-manager:
+
+```bash
+claude --plugin-dir ./automol-tasks-manager/
+```
+
+This provides two skills:
+- `train-pipeline`: Train ensemble stacking models on SMILES data
+- `predict`: Make predictions using trained models
+
+> There is a mimimal MolAgent Claude Code plugin available: [MolAgentLight](https://github.com/JorisTavernier/MolAgentLight). 
+
+### Train a Model
+
+Once in Claude Code, use natural language:
+
+```
+> Train a model on my_molecules.csv with target property potency
+```
+
+Or invoke the skill directly:
+
+```
+> /train-pipeline
+```
+
+The skill will:
+1. Detect dataset properties (SMILES column, targets, task type)
+2. Auto-configure sensible defaults
+3. Ask for approval
+4. Run the full pipeline: prepare → split → train → evaluate → refit
+
+### Make Predictions
+
+```
+> Predict properties for new_molecules.csv using my trained model
+```
+
+Or:
+
+```
+> /predict
+```
+
+The predict skill will list the trained models from the registry. 
+
+## Skills
+
+### train-pipeline
+
+End-to-end training pipeline for molecular property prediction.
+
+**Features:**
+- Regression and classification support
+- Multiple feature generators: Bottleneck (pretrained encoder), ECFP fingerprints, RDKit descriptors
+- Nested cross-validation with hyperparameter optimization
+- Ensemble stacking methods
+- Computational load presets: `free`, `cheap`, `moderate`, `expensive`
+
+**Outputs:**
+- Trained models saved as `.pt` files in `MolagentFiles/{run_id}/`
+- Model registry at `MolagentFiles/model_registry.json`
+- Evaluation metrics and model card
+
+### predict
+
+Single-phase inference skill.
+
+**Features:**
+- Auto-discovers trained models from registry
+- Accepts CSV files or individual SMILES strings
+- Supports merged multi-property models
+- Outputs predictions to CSV
+
+---
+
 ### 📄Citation
 
 **MolAgent: Biomolecular Property Estimation in the Agentic Era**
@@ -56,6 +135,7 @@ Our **roadmap** includes expanding from the current componenents into a full mul
 * [Setup](#starting-mcp-servers-locally): Jump to starting the MCP servers
 * [Usage](#examples): Jump to the example usage of MolAgent, includes a Gradio Chatbot
 * [AutoMol](https://github.com/openanalytics/AutoMol/tree/main): Jump to the ML backend AutoMol and its [Tutorials](https://github.com/openanalytics/AutoMol/tree/main/Tutorials)
+* [MolAgentLight](https://github.com/JorisTavernier/MolAgentLight): a mimimal MolAgent Claude Code plugin
 
 ### abstract
 
@@ -269,19 +349,6 @@ claude mcp add --transport sse  automoldata https://localhost:8000/sse
 claude mcp add --transport sse automolmodelling https://localhost:8001/sse
 ```
 
-### Claude Code Plugin
-
-You can also use MolAgent as a Claude Code plugin with the automol-tasks-manager:
-
-```bash
-claude --plugin-dir ./automol-tasks-manager/
-```
-
-This provides two skills:
-- `train-pipeline`: Train ensemble stacking models on SMILES data
-- `predict`: Make predictions using trained models
-
----
 ### Tool Inspector
 
 You can start the MCP tool inspector by running:
