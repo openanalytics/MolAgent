@@ -83,6 +83,7 @@ MolagentFiles/
     "model_files": {},
     "merged_model_file": null,
     "train_info": {},
+    "evaluation_results": {},
     "refitted_model_files": {},
     "merged_refitted_model_file": null,
     "model_card": null
@@ -129,6 +130,7 @@ Trained models are tracked in `MolagentFiles/model_registry.json` (global, not i
   "blender_properties": [],
   "source_dataset": "Data/Caco2_wang.csv",
   "is_refitted": true,
+  "model_format": "merged",
   "model_card": "MolagentFiles/Caco2_wang-Y-20260207_1430/model_card.md",
   "train_info": "MolagentFiles/Caco2_wang-Y-20260207_1430/Y_train_info.json",
   "n_samples": 910,
@@ -139,7 +141,7 @@ Trained models are tracked in `MolagentFiles/model_registry.json` (global, not i
 
 ### Model ID Format
 
-`{dataset_stem}-{property}-{YYYYMMDD}_{HHMM}` (matches run folder name). Duplicate IDs get `-2`, `-3`, etc. appended.
+`{dataset_stem}-{props_joined}-{YYYYMMDD}_{HHMM}` (matches run folder name, where `props_joined` is all target properties sorted and joined with `_`). Duplicate IDs get `-2`, `-3`, etc. appended.
 
 ### model_registry.py CLI
 
@@ -246,14 +248,10 @@ The detection script generates data-driven recommendations for `computational_lo
 
 | Condition | Recommendation | Reason |
 |-----------|---------------|--------|
-| n_samples < 100 | `free` | Very small dataset — fast single-model signal check recommended |
-| n_samples < 200 | `cheap` | Small dataset — extensive search won't improve results |
-| n_samples < 500 | `cheap` | Quick iteration recommended, upgrade to moderate if needed |
-| has_3d AND n_samples >= 1000 | `expensive` | Large 3D dataset benefits from full search |
-| has_3d | `moderate` | 3D features add compute cost |
-| n_targets > 5 AND n_samples >= 2000 | `expensive` | Multi-target large dataset |
-| n_samples >= 2000 | `moderate` | Large dataset — expensive available for max performance |
-| else | `moderate` | Good balance of speed and model quality |
+| n_samples < 250 | `free` | Small dataset — single-model signal check is sufficient |
+| n_samples >= 250 | `cheap` | Minimal ensemble recommended; upgrade to moderate or expensive if higher accuracy is needed |
+
+The auto-detection never recommends `moderate` or `expensive`. Users can select those via the AskUserQuestion prompt if they want higher accuracy or have the compute budget.
 
 ### Split Strategy Thresholds
 
@@ -371,7 +369,7 @@ The `n_jobs` setting is derived from `computational_load` when not explicitly sp
     "null_rates": {"gamma1": 0.0, "gamma2": 0.0, "gamma3": 0.0}
   },
   "recommendations": {
-    "computational_load": {"value": "cheap", "reason": "Small dataset (157 samples) — extensive search won't improve results"},
+    "computational_load": {"value": "free", "reason": "Small dataset — single-model signal check is sufficient"},
     "split_strategy": {"value": "mixed", "reason": "Comprehensive validation (stratified + scaffold + activity cliffs)"},
     "use_advanced": {"value": false, "reason": "Standard training builds a strong stacking ensemble automatically"},
     "target_transformations": [],

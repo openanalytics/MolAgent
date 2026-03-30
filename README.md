@@ -22,9 +22,10 @@
 - **🧠 Autonomous Model Construction**: AI agents that can train predictive models with expert-level quality
 - **⚡ On-the-fly Training**
 - **🔧 MCP-Based Architecture**: the componenets are Built as **Model Context Protocol (MCP) servers** to be system-agnostic and ensuring compatibility with various agentic frameworks.
+- **🧩 Claude Code Skills**: a native Claude Code plugin (`automol-tasks-manager`) providing `train-pipeline`, `predict`, and `visualize` skills for end-to-end modeling directly in the IDE — no MCP servers required.
 
 
-### Update February 2026: Claude Code Plugin
+### Update March 2026: Claude Code Plugin (2)
 
 You can also use MolAgent as a Claude Code plugin with the automol-tasks-manager:
 
@@ -32,11 +33,14 @@ You can also use MolAgent as a Claude Code plugin with the automol-tasks-manager
 claude --plugin-dir ./automol-tasks-manager/
 ```
 
-This provides two skills:
+> **Note:** After starting Claude Code with the plugin for the first time, restart once so the SessionStart hook creates the virtual environment and installs all dependencies. Then restart a **second time** — this injects `$AUTOMOL_ROOT` into all Bash calls (including subagents) via `.claude/settings.local.json`.
+
+This provides three skills:
 - `train-pipeline`: Train ensemble stacking models on SMILES data
 - `predict`: Make predictions using trained models
+- `visualize`: Generate an interactive HTML dashboard from evaluation results
 
-> There is a mimimal MolAgent Claude Code plugin available: [MolAgentLight](https://github.com/JorisTavernier/MolAgentLight). 
+> There is a mimimal MolAgent Claude Code plugin available: [MolAgentLight](https://github.com/JorisTavernier/MolAgentLight).
 
 ### Train a Model
 
@@ -99,6 +103,29 @@ Single-phase inference skill.
 - Accepts CSV files or individual SMILES strings
 - Supports merged multi-property models
 - Outputs predictions to CSV
+
+### visualize
+
+Single-phase visualization skill.
+
+**Features:**
+- Auto-discovers completed evaluation runs
+- Generates a **self-contained HTML file** — no server required, works offline after first load
+- Opens the dashboard in the default browser automatically
+
+**Regression plots:** scatter with MAE bands · residuals · error histogram · error bar plot · moving average error · hit enrichment curve · threshold sweep
+
+**Classification plots:** confusion matrix · ROC curves · precision-recall curves · F1 threshold tuning · calibration diagram · probability bar plot
+
+**Usage:**
+```
+> Visualize the results from my last training run
+> /visualize
+```
+
+<img src="Gifs/Dashboard.png" width="800">
+
+<sup>Figure: MolAgent interactive dashboard — Caco-2 regression run. Left: scatter plot with MAE bands and molecular hover tooltip (SmilesDrawer). Right: moving average error. Metrics panel shows MAE, RMSE, R², Pearson and test set size.</sup>
 
 ---
 
@@ -546,6 +573,8 @@ MolAgent relies on the following open-source projects and tools:
 5. [FastMCP](https://github.com/jlowin/fastmcp)
 6. [Prolif](https://prolif.readthedocs.io/en/stable/index.html): Bouysset, C., Fiorucci, S. ProLIF: a library to encode molecular interactions as fingerprints.
 J Cheminform 13, 72 (2021). https://doi.org/10.1186/s13321-021-00548-6
+7. [SmilesDrawer](https://github.com/reymond-group/smilesDrawer): 
+Daniel Probst and Jean-Louis Reymond. SmilesDrawer: Parsing and Drawing SMILES-Encoded Molecular Structures Using Client-Side JavaScript.Journal of Chemical Information and Modeling 2018 58 (1), 1-7
 
 ## Contacts
 

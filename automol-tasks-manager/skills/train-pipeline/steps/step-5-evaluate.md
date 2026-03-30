@@ -10,8 +10,8 @@ Run model evaluation to generate metrics, PDF report, and prediction files.
 ## Skip Condition
 
 Check `pipeline_state.json`:
-- If `config.use_advanced` is true AND step 5 is already in `steps_completed`, skip this step
-- Advanced training with `--evaluate-after-training` handles evaluation internally
+- If step 5 is already in `steps_completed`, skip this step
+- This happens automatically when advanced training runs with `--evaluate-after-training`, which causes step-4 to advance `current_step` to 6
 
 ## Instructions for Subagent
 
@@ -47,6 +47,7 @@ Note: Use `--split-type test` if a test set was created (we always use `--add-te
 
 - `{config.output_folder}/{property}_evaluation_report.pdf`
 - `{config.output_folder}/{property}_evaluation_predictions.csv`
+- `{config.output_folder}/{property}_evaluation_info.json`
 
 ## Extract Metrics
 
@@ -60,6 +61,12 @@ Read the evaluation output or train_info.json to extract per-property metrics:
 Update `pipeline_state.json` in the run folder:
 ```json
 {
+  "outputs": {
+    "evaluation_results": {
+      "prop1": "{config.output_folder}/prop1_evaluation_predictions.csv",
+      "prop2": "{config.output_folder}/prop2_evaluation_predictions.csv"
+    }
+  },
   "metrics": {
     "prop1": { "R2": 0.85, "RMSE": 0.42, "MAE": 0.31 },
     "prop2": { "R2": 0.78, "RMSE": 0.55, "MAE": 0.40 }

@@ -223,7 +223,7 @@ For each step from `current_step` to 8:
 | 2 | Task (general-purpose) | [step-2-prepare.md](steps/step-2-prepare.md) | Always |
 | 3 | Task (general-purpose) | [step-3-split.md](steps/step-3-split.md) | Always |
 | 4 | Task (general-purpose) | [step-4-train.md](steps/step-4-train.md) | Always |
-| 5 | Task (general-purpose) | [step-5-evaluate.md](steps/step-5-evaluate.md) | Skip if `use_advanced` |
+| 5 | Task (general-purpose) | [step-5-evaluate.md](steps/step-5-evaluate.md) | Skip if step 5 already in `steps_completed` (set by step-4 when `use_advanced`) |
 | 6 | **Inline** | [step-6-review.md](steps/step-6-review.md) | Always (user checkpoint) |
 | 7 | Task (general-purpose) | [step-7-refit.md](steps/step-7-refit.md) | Always (skip only if user explicitly declines) |
 | 8 | **Inline** | [step-8-complete.md](steps/step-8-complete.md) | Always |

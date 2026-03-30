@@ -2,12 +2,13 @@
 
 ## Architecture
 
-This is a Claude Code plugin for the AutoMol molecular ML library. It has 2 skills (`train-pipeline`, `predict`) and a SessionStart hook.
+This is a Claude Code plugin for the AutoMol molecular ML library. It has 3 skills (`train-pipeline`, `predict`, `visualize`) and a SessionStart hook.
 
 ### Key Directories
 
 - `skills/train-pipeline/scripts/` — Python scripts executed via `uv run python`. Each is a Click CLI app with PEP 723 inline metadata.
 - `skills/predict/scripts/` — Prediction script, separate from training.
+- `skills/visualize/scripts/` — Dashboard generation script (`generate_dashboard.py`).
 - `MolagentFiles/` — All pipeline outputs. Only `model_registry.json` is version-controlled.
 - `hooks/setup-automol-env.sh` — Exports `AUTOMOL_ROOT` and `PLUGIN_ROOT` at session start.
 
@@ -85,7 +86,8 @@ Use `is not None` (not truthiness) when checking `blender_properties`. An empty 
     "merged_model_file": "MolagentFiles/.../merged_stackingregmodel.pt",
     "refitted_model_files": { "prop1": "MolagentFiles/.../prop1_refitted_stackingregmodel.pt" },
     "merged_refitted_model_file": "MolagentFiles/.../merged_refitted_stackingregmodel.pt",
-    "train_info": { "prop1": "MolagentFiles/.../prop1_train_info.json" }
+    "train_info": { "prop1": "MolagentFiles/.../prop1_train_info.json" },
+    "evaluation_results": { "prop1": "MolagentFiles/.../prop1_evaluation_predictions.csv" }
   },
   "metrics": {
     "prop1": { "r2": 0.85, "mse": 0.12 }
@@ -101,7 +103,7 @@ Use `is not None` (not truthiness) when checking `blender_properties`. An empty 
 | Split | `automol_split_{stem}.csv` + `_info.json` |
 | Train (reg) | `{property}_stackingregmodel.pt` + `{property}_train_info.json` |
 | Train (clf) | `{property}_stackingclfmodel.pt` + `{property}_train_info.json` |
-| Evaluate | `{property}_evaluation_predictions.csv` |
+| Evaluate | `{property}_evaluation_predictions.csv` + `_evaluation_info.json` + `_evaluation_report.pdf` |
 | Refit (reg) | `{property}_refitted_stackingregmodel.pt` |
 | Refit (clf) | `{property}_refitted_stackingclfmodel.pt` |
 | Merge | `merged_stackingregmodel.pt` / `merged_refitted_stackingregmodel.pt` |
@@ -133,3 +135,5 @@ When training multiple properties, per-property `.pt` files each contain the ful
 **Classification**: `AutoMol/automol/automol/test/ChEMBL_SMILES.csv` (157 molecules, binary `prop5`) with `cheap` load. Note: `prop5` is already binary, so quantile-binning collapses — the training script falls back to the original column automatically.
 
 **Predictions**: run after training using the same dataset or new SMILES. The predict skill auto-discovers models from the registry.
+
+**Visualization**: run after evaluation (step 5 must be complete). The visualize skill auto-discovers runs with `metrics` and `outputs.evaluation_results` populated, then generates a self-contained `dashboard.html` in the run folder.

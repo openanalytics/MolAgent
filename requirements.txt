@@ -27,7 +27,10 @@ mammoth==1.11.0
 mcp==1.10.1
 mcpadapt==0.1.10
 mdanalysis==2.9.0
+mda-xdrlib==0.2.0
+mmtf-python==1.1.3
 molfeat==0.11.0
+multiprocess==0.70.19
 numpy==1.26.4
 pathvalidate==3.3.1
 pdfminer-six==20250506
@@ -38,7 +41,7 @@ python-pptx==1.0.2
 pytorch-lightning==2.5.2
 rdkit==2024.3.5
 scikit-learn==1.7.0
-scipy==1.16.0
+scipy==1.17.1
 smolagents[all]==1.19.0
 SpeechRecognition==3.14.3
 streamlit==1.46.1
@@ -50,4 +53,5 @@ torchvision==0.22.1
 transformers==4.50.3
 uvicorn==0.35.0
 xgboost==3.0.2
+yacs==0.1.8
 youtube-transcript-api==1.2.2

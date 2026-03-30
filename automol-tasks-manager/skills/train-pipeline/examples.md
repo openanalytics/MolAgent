@@ -33,7 +33,7 @@ Creates run folder `MolagentFiles/raw_data-gamma1_gamma2_gamma3-20260207_1430/`,
 ```
 Pipeline Complete!
   Run folder: MolagentFiles/raw_data-gamma1_gamma2_gamma3-20260207_1430/
-  Model ID: raw_data-gamma1_gamma2_gamma3-20260207-1430
+  Model ID: raw_data-gamma1_gamma2_gamma3-20260207_1430
   Registry: MolagentFiles/model_registry.json
   Next: use 'predict' skill to make predictions
 ```

@@ -273,19 +273,9 @@ def count_valid_smiles(df, smiles_column):
 
 def recommend_computational_load(n_samples, n_targets, has_3d, task_type):
     """Recommend computational load based on dataset characteristics."""
-    if n_samples < 200:
-        return "free", "Very small dataset — fast single-model signal check recommended"
-    if n_samples < 1000:
-        return "cheap", "Small dataset — extensive search won't improve results"
-    if has_3d and n_samples >= 1000:
-        return "expensive", "Large 3D dataset benefits from full search"
-    if has_3d:
-        return "moderate", "3D features add compute cost"
-    if n_targets > 5 and n_samples >= 2000:
-        return "expensive", "Multi-target large dataset"
-    if n_samples >= 2000:
-        return "moderate", "Large dataset — expensive available for max performance"
-    return "moderate", "Good balance of speed and model quality"
+    if n_samples < 250:
+        return "free", "Small dataset — single-model signal check is sufficient"
+    return "cheap", "Minimal ensemble recommended; upgrade to moderate or expensive if higher accuracy is needed"
 
 
 def recommend_split_strategy(n_samples, targets, class_balance):
@@ -335,7 +325,7 @@ def generate_warnings(n_samples, targets, null_rates, correlations, class_balanc
     if n_samples < 50:
         warnings.append(f"Very small dataset ({n_samples} samples) — results may be unreliable")
     elif n_samples < 100:
-        warnings.append(f"Small dataset ({n_samples} samples) — consider cheap load for quick validation")
+        warnings.append(f"Small dataset ({n_samples} samples) — results may have high variance")
 
     # Target distribution warnings
     for t in targets:

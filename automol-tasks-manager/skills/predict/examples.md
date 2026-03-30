@@ -5,7 +5,7 @@
 **User**: "Predict properties for my new molecules in `new_compounds.csv`"
 
 **Flow**:
-1. Registry has 1 model: `raw_data-gamma1_gamma2_gamma3-20260207-1430`
+1. Registry has 1 model: `raw_data-gamma1_gamma2_gamma3-20260207_1430`
 2. Auto-selects it, shows summary
 3. User provided CSV path — no need to ask
 4. Runs: `predict.py --model-file MolagentFiles/raw_data-gamma1_gamma2_gamma3-20260207_1430/merged_refitted_stackingregmodel.pt --smiles-file new_compounds.csv --verbose`
@@ -19,7 +19,7 @@
 1. Registry has merged model with gamma1, gamma2, gamma3
 2. Auto-selects it
 3. SMILES provided inline
-4. Runs: `predict.py --model-file .../merged_refitted_stackingregmodel.pt --smiles-list "CCO" --smiles-list "c1ccccc1" --properties gamma1 --verbose`
+4. Runs: `predict.py --model-file MolagentFiles/raw_data-gamma1_gamma2_gamma3-20260207_1430/merged_refitted_stackingregmodel.pt --smiles-list "CCO" --smiles-list "c1ccccc1" --properties gamma1 --verbose`
 5. Shows predictions for gamma1 only
 
 ## Example 3: Multiple Models + Selection
@@ -28,8 +28,8 @@
 
 **Flow**:
 1. Registry has 3 models — AskUserQuestion: which model?
-2. User picks `ChEMBL_SMILES-prop5-20260207-2314` (classification)
-3. Runs: `predict.py --model-file MolagentFiles/ChEMBL_SMILES-prop5-20260207_2300/prop5_refitted_stackingclfmodel.pt --smiles-list "CCO" --verbose`
+2. User picks `ChEMBL_SMILES-prop5-20260207_2314` (classification)
+3. Runs: `predict.py --model-file MolagentFiles/ChEMBL_SMILES-prop5-20260207_2314/prop5_refitted_stackingclfmodel.pt --smiles-list "CCO" --verbose`
 4. Shows classification prediction for prop5
 
 ## Example 4: Model With Blender Properties

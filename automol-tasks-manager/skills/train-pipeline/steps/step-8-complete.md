@@ -62,8 +62,9 @@ Model ID: {model_id}
 Registry: MolagentFiles/model_registry.json
 
 Next Steps:
+  - Visualize results: use the 'visualize' skill to explore evaluation charts
   - Make predictions: use the 'predict' skill (auto-discovers this model)
-  - Deploy as API: see deploy/DEPLOYMENT.md for REST API, Docker, and cloud options
+  - Deploy as API: see `deploy/DEPLOYMENT.md` in the repo root for REST API, Docker, and cloud options (if available)
   - View model card: {model_card}
 ```
 
@@ -86,10 +87,28 @@ If multiple properties were trained, models are merged into a single `.pt` file 
 
 Use TaskUpdate to mark all remaining pipeline tasks as completed.
 
+## Ask About Visualization
+
+After displaying the summary, ask the user if they want to visualize the results now:
+
+```
+AskUserQuestion:
+  header: "Visualize"
+  question: "Would you like to explore the evaluation results in an interactive dashboard?"
+  options:
+    - "Yes, open dashboard (Recommended) - Generate and open the HTML dashboard now"
+    - "No, I'm done - Skip visualization"
+```
+
+If the user selects **"Yes"**: invoke the `visualize` skill inline, passing the current run's `pipeline_state.json` path so it skips discovery and goes straight to dashboard generation.
+
+If the user selects **"No"**: display the closing message and stop.
+
 ## Done
 
 The pipeline is complete. The user can now:
-1. Use the `predict` skill to make predictions (it auto-discovers models from the registry)
-2. Deploy as a REST API — `deploy/DEPLOYMENT.md` covers: direct server, Docker, Docker Compose (GPU/nginx/Redis), and Python client
-3. Read the model card for a quick-reference summary
-4. Re-run the pipeline with different settings on the same data
+1. Use the `visualize` skill to explore evaluation charts in an interactive dashboard
+2. Use the `predict` skill to make predictions (it auto-discovers models from the registry)
+3. Deploy as a REST API — see `deploy/DEPLOYMENT.md` in the repo root (if available) for: direct server, Docker, Docker Compose (GPU/nginx/Redis), and Python client
+4. Read the model card for a quick-reference summary
+5. Re-run the pipeline with different settings on the same data

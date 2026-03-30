@@ -12,7 +12,7 @@ Analyze the user's CSV file to detect:
 
 ## Execution
 
-Run the detection script and capture JSON output if the provide file is an csv:
+Run the detection script and capture JSON output if the provided file is a CSV:
 
 ```bash
 uv run python ${AUTOMOL_ROOT:-$PWD}/skills/train-pipeline/scripts/detect_dataset.py \

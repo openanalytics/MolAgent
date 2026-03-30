@@ -46,6 +46,7 @@ uv run python ${AUTOMOL_ROOT:-$PWD}/skills/train-pipeline/scripts/train_{task_ty
     --feature-keys {feature_key1} \
     --feature-keys {feature_key2} \
     --computational-load {computational_load} \
+    --output-folder {config.output_folder} \
     --evaluate-after-training \
     --verbose
 ```

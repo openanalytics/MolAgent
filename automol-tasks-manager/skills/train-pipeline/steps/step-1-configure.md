@@ -15,7 +15,7 @@ recs = detection["recommendations"]
 
 # Derive n_jobs from computational_load
 n_jobs_map = {
-    "free": {"outer": 1, "inner": 2, "method": 1},
+    "free": {"outer": 1, "inner": 1, "method": 1},
     "cheap": {"outer": 1, "inner": 2, "method": 2},
     "moderate": {"outer": -1, "inner": 2, "method": 2},
     "expensive": {"outer": -1, "inner": -1, "method": 2},
@@ -121,7 +121,7 @@ options:
     description: "Gives you control over model hierarchy, estimator lists, CV clustering, and custom Python estimators/features. {recs.use_advanced.reason if it mentions 'consider advanced', else 'Only needed if standard defaults don't fit your use case.'}"
 ```
 
-**Auto-execute rule**: If the user's original prompt clearly requests training (e.g., "train a model on X.csv", "run the full pipeline on my data"), skip this question entirely — treat it as "Looks good, run it". Only ask Q2 when the user's intent is ambiguous or they explicitly asked to review/plan first. When auto-executing, do use the free computational load. 
+**Auto-execute rule**: If the user's original prompt clearly requests training (e.g., "train a model on X.csv", "run the full pipeline on my data"), skip this question entirely — treat it as "Looks good, run it". Only ask Q2 when the user's intent is ambiguous or they explicitly asked to review/plan first.
 
 This is also the **scope refinement** question. "Other" lets the user type any correction.
 
@@ -251,6 +251,7 @@ Write the full state to `{run_folder}/pipeline_state.json` (inside the run folde
     "split_csv": null, "split_info": null,
     "model_files": {}, "merged_model_file": null,
     "train_info": {},
+    "evaluation_results": {},
     "refitted_model_files": {}, "merged_refitted_model_file": null,
     "model_card": null
   },
