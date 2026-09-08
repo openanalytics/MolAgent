@@ -294,8 +294,6 @@ asyncio.run(main())
 
 ## 🤗 SmolAgents / Gradio Integration
 
-The notebook [Lipophilicity_AstraZeneca.ipynb](MCP/Lipophilicity_AstraZeneca.ipynb) shows integration using SmolAgents and a Gradio interface. [MolAgent_multiagent.ipynb](MCP/MolAgent_multiagent.ipynb) contains multi-agent examples including the ABL1 case from the paper.
-
 ### Gradio chatbot
 
 After starting the MCP server, launch the SmolAgents-powered chatbot:
