@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="atelier">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ARTIFACT_TITLE}}</title>
+
+<!-- Theme fonts (DM Sans + Fraunces + JetBrains Mono — match Nexus Atelier theme) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Plotly + SmilesDrawer -->
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script src="https://unpkg.com/smiles-drawer@2.1.7/dist/smiles-drawer.min.js"></script>
+
+<style>
+/* ───────────────────────── Theme tokens ───────────────────────── */
+:root, :root[data-theme='atelier'] {
+  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  --bg-page: #faf7f1;
+  --bg-card: #fffdf7;
+  --bg-soft: #f3ead9;
+  --bg-elevated: #ffffff;
+  --bg-hover: rgba(212, 160, 86, 0.08);
+
+  --text-primary: #1a1410;
+  --text-secondary: #4b3a2a;
+  --text-muted: #7d6b53;
+
+  --border: rgba(214, 198, 158, 0.6);
+  --border-soft: rgba(214, 198, 158, 0.28);
+  --border-strong: #c9b48f;
+
+  --accent: #d4a056;
+  --accent-fg: #1a1410;
+  --accent-soft: rgba(212, 160, 86, 0.14);
+  --accent-line: rgba(212, 160, 86, 0.32);
+  --accent-strong: #b8651b;
+
+  --code-bg: #f5ecd9;
+
+  --shadow-card: 0 1px 2px rgba(120, 70, 20, 0.05), 0 8px 22px rgba(120, 70, 20, 0.06);
+  --shadow-elev: 0 6px 22px rgba(120, 70, 20, 0.10), 0 2px 6px rgba(120, 70, 20, 0.05);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  --status-success: #659959;
+  --status-warning: #c69325;
+  --status-error: #b94a3c;
+  --status-info: #4a8db8;
+
+  --plot-paper: var(--bg-card);
+  --plot-grid: rgba(125, 107, 83, 0.18);
+  --plot-axis: var(--text-secondary);
+}
+
+:root[data-theme='jarvis'] {
+  --bg-page: #06080d;
+  --bg-card: #0d1117;
+  --bg-soft: #131923;
+  --bg-elevated: #11151c;
+  --bg-hover: rgba(56, 189, 248, 0.07);
+
+  --text-primary: #e0f2fe;
+  --text-secondary: #b3c5da;
+  --text-muted: #6c7c93;
+
+  --border: #1e2a3d;
+  --border-soft: rgba(56, 189, 248, 0.10);
+  --border-strong: #2a3a52;
+
+  --accent: #38bdf8;
+  --accent-fg: #06080d;
+  --accent-soft: rgba(56, 189, 248, 0.12);
+  --accent-line: rgba(56, 189, 248, 0.32);
+  --accent-strong: #7dd3fc;
+
+  --code-bg: #0a1322;
+
+  --shadow-card: 0 0 0 1px rgba(56, 189, 248, 0.04), 0 6px 24px rgba(0, 0, 0, 0.45);
+  --shadow-elev: 0 0 0 1px rgba(56, 189, 248, 0.08), 0 12px 40px rgba(0, 0, 0, 0.6);
+
+  --status-success: #4ade80;
+  --status-warning: #facc15;
+  --status-error: #f87171;
+  --status-info: #60a5fa;
+
+  --plot-paper: var(--bg-card);
+  --plot-grid: rgba(125, 137, 158, 0.22);
+  --plot-axis: var(--text-secondary);
+}
+
+/* Auto-switch when host prefers dark and user hasn't explicitly chosen */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='atelier']):not([data-theme='jarvis']) {
+    color-scheme: dark;
+  }
+}
+
+/* ───────────────────────── Reset ───────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  font-family: var(--font-body);
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+body { min-height: 100vh; }
+
+/* ───────────────────────── Layout shell ───────────────────────── */
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.dash-header {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: saturate(140%);
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.brand-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+.brand-subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  word-break: break-all;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  border: 1px solid var(--accent-line);
+}
+.badge.success { background: rgba(101, 153, 89, 0.12); color: var(--status-success); border-color: rgba(101, 153, 89, 0.3); }
+.badge.warning { background: rgba(198, 147, 37, 0.12); color: var(--status-warning); border-color: rgba(198, 147, 37, 0.3); }
+.badge.info    { background: rgba(74, 141, 184, 0.12); color: var(--status-info);    border-color: rgba(74, 141, 184, 0.3); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--bg-soft);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, transform 80ms ease;
+}
+.btn:hover  { background: var(--bg-hover); border-color: var(--accent-line); }
+.btn:active { transform: translateY(1px); }
+.btn.primary {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.btn.primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); color: #fff; }
+.btn.ghost  { background: transparent; }
+.btn.icon   { padding: 7px; min-width: 32px; justify-content: center; }
+.btn[aria-pressed='true'] {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent-strong);
+}
+
+select, .field {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 120ms ease;
+}
+select:hover, select:focus { border-color: var(--accent-line); outline: none; }
+
+/* ───────────────────────── Hero metrics ───────────────────────── */
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+  padding: 20px 24px 4px;
+}
+
+.metric-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-card);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.metric-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-elev); }
+
+.metric-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.metric-value {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.65rem;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+.metric-value.success { color: var(--status-success); }
+.metric-value.warning { color: var(--status-warning); }
+.metric-value.error   { color: var(--status-error); }
+.metric-sub {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* ───────────────────────── Provenance card ───────────────────────── */
+.provenance {
+  margin: 16px 24px 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+.provenance summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.provenance summary::-webkit-details-marker { display: none; }
+.provenance summary::after {
+  content: '▾';
+  color: var(--text-muted);
+  transition: transform 150ms ease;
+  font-size: 0.85rem;
+}
+.provenance[open] summary::after { transform: rotate(180deg); }
+
+.provenance-title {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.provenance-body {
+  padding: 0 18px 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+.kv {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 2px solid var(--accent-line);
+  padding-left: 10px;
+}
+.kv-label {
+  font-family: var(--font-mono);
+  font-size: 0.63rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+.kv-value {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+/* ───────────────────────── Tab bar / controls ───────────────────────── */
+.controls-row {
+  margin: 18px 24px 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.tab-bar {
+  display: inline-flex;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px;
+  gap: 2px;
+  box-shadow: var(--shadow-card);
+  flex-wrap: wrap;
+}
+.tab-btn {
+  padding: 6px 14px;
+  background: transparent;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+.tab-btn:hover { background: var(--bg-hover); }
+.tab-btn[aria-selected='true'] {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+.control-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.control-group label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+/* ───────────────────────── Plot containers ───────────────────────── */
+.main-content {
+  padding: 16px 24px 24px;
+  flex: 1;
+}
+
+.plot-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 1fr;
+}
+.plot-grid.two-col { grid-template-columns: 1fr 1fr; }
+@media (max-width: 900px) { .plot-grid.two-col { grid-template-columns: 1fr; } }
+
+.plot-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.plot-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: var(--bg-soft);
+  border-bottom: 1px solid var(--border-soft);
+  gap: 10px;
+}
+.plot-card-title {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.plot-card-actions { display: inline-flex; gap: 6px; }
+.plot-card-body { padding: 8px; }
+
+/* ───────────────────────── Outlier table ───────────────────────── */
+.table-wrap {
+  margin: 18px 24px 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.table-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--bg-soft);
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.table-head-actions { display: inline-flex; gap: 8px; }
+
+table.outlier {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+}
+table.outlier th, table.outlier td {
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: middle;
+}
+table.outlier th {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  position: sticky;
+  top: 0;
+}
+table.outlier td.mono { font-family: var(--font-mono); }
+table.outlier tr:hover td { background: var(--bg-hover); }
+table.outlier .smiles-cell { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.smiles-canvas {
+  width: 120px;
+  height: 60px;
+  background: var(--bg-elevated);
+  border-radius: 4px;
+  display: block;
+  overflow: visible;
+}
+
+/* ───────────────────────── Tooltip ───────────────────────── */
+.smiles-tooltip {
+  position: fixed;
+  pointer-events: none;
+  background: var(--bg-card);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-elev);
+  padding: 10px;
+  z-index: 1000;
+  display: none;
+}
+.smiles-tooltip svg {
+  background: var(--bg-elevated);
+  border-radius: 4px;
+  display: block;
+}
+.smiles-tooltip .tooltip-info {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+  text-align: center;
+}
+
+/* ───────────────────────── Footer ───────────────────────── */
+.dash-footer {
+  border-top: 1px solid var(--border-soft);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
+/* ───────────────────────── Empty / drop state ───────────────────────── */
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 24px;
+}
+.empty-state h2 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 1.7rem;
+  margin-bottom: 10px;
+}
+.empty-state p { color: var(--text-muted); max-width: 480px; }
+.drop-zone {
+  margin-top: 24px;
+  padding: 30px 50px;
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+.drop-zone:hover, .drop-zone.dragover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* ───────────────────────── Plot controls bar ───────────────────────── */
+.plot-controls {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px;
+  padding: 8px 12px 6px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.78rem; color: var(--text-secondary);
+}
+.plot-controls label { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.plot-controls input[type=range] {
+  width: 110px; height: 4px; accent-color: var(--accent);
+  cursor: pointer; vertical-align: middle;
+}
+.plot-controls .ctrl-val {
+  min-width: 2.4em; text-align: right;
+  font-family: var(--font-mono); font-size: 0.76rem; color: var(--accent);
+}
+
+/* ───────────────────────── Animation ───────────────────────── */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.plot-card, .metric-card, .provenance, .table-wrap { animation: fadeIn 220ms ease both; }
+
+/* ───────────────────────── Plot panel hidden state ───────────────────────── */
+.panel { display: none; }
+.panel.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- Initial data slot — placeholder gets substituted by Nexus / generate_dashboard.py.
+     If left literal (no substitution), the empty-state UI takes over and lets the
+     user drop a pipeline_state.json or evaluation CSV directly. -->
+<script id="initial-data" type="application/json">{{INITIAL_DATA}}</script>
+
+<div class="shell" id="shell">
+  <header class="dash-header">
+    <div class="brand">
+      <div class="brand-title" id="brandTitle">{{ARTIFACT_TITLE}}</div>
+      <div class="brand-subtitle" id="brandSubtitle">{{RUN_ID}}</div>
+    </div>
+    <div class="header-actions">
+      <span class="badge" id="taskTypeBadge">—</span>
+      <span class="badge info" id="propCountBadge" style="display:none">—</span>
+      <div class="control-group" id="propPickerWrap" style="display:none">
+        <label for="propPicker">Property</label>
+        <select id="propPicker"></select>
+      </div>
+      <button class="btn icon ghost" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
+    </div>
+  </header>
+
+  <main id="mainContent" style="display:none">
+    <section class="metrics-row" id="metricsRow"></section>
+
+    <details class="provenance" id="provenance" open>
+      <summary>
+        <span class="provenance-title">Training Provenance</span>
+      </summary>
+      <div class="provenance-body" id="provenanceBody"></div>
+    </details>
+
+    <div class="controls-row">
+      <div class="tab-bar" id="tabBar" role="tablist"></div>
+      <div class="control-group" id="overlayCtl" style="display:none">
+        <label for="colorBy">Color points by</label>
+        <select id="colorBy">
+          <option value="none">None</option>
+          <option value="error">Absolute error</option>
+          <option value="sd">Predicted uncertainty (SD)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div id="panel-host"></div>
+    </div>
+
+    <div class="table-wrap" id="outlierWrap" style="display:none">
+      <div class="table-head">
+        <span class="provenance-title">Worst predictions (top 20 by |error|)</span>
+        <div class="table-head-actions">
+          <button class="btn" id="downloadOutliers">⬇ Download CSV</button>
+          <button class="btn primary" id="askClaudeOutliers">💬 Ask Claude about these</button>
+        </div>
+      </div>
+      <div style="max-height: 420px; overflow: auto">
+        <table class="outlier" id="outlierTable">
+          <thead><tr><th>#</th><th>SMILES</th><th>Structure</th><th>True</th><th>Predicted</th><th>|Error|</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Empty state when no data has been substituted/loaded yet -->
+  <section class="empty-state" id="emptyState">
+    <h2>MolAgent Dashboard</h2>
+    <p>Drop a <code>pipeline_state.json</code> file (or an evaluation CSV) to render
+      the dashboard. Or invoke <code>uv run generate_dashboard.py</code> from the
+      MolAgentLight plugin to bake a self-contained report.</p>
+    <label class="drop-zone" id="dropZone">
+      <strong>Drop pipeline_state.json here</strong><br>
+      <span style="color:var(--text-muted);font-size:0.82rem">or click to browse</span>
+      <input type="file" accept=".json,.csv" id="filePicker" style="display:none">
+    </label>
+  </section>
+
+  <footer class="dash-footer">
+    <span id="footerLeft">MolAgentLight · self-contained dashboard</span>
+    <span id="footerRight"></span>
+  </footer>
+</div>
+
+<div class="smiles-tooltip" id="smilesTooltip">
+  <svg id="smilesSvg" width="220" height="160" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div class="tooltip-info" id="smilesInfo"></div>
+</div>
+
+<script>
+'use strict';
+
+// ───────────────────────────── State ─────────────────────────────
+const state = {
+  data: null,           // task_type, run_id, properties, per-property data, train_info
+  currentProp: null,
+  currentTab: 'overview',
+  colorBy: 'none',
+  isInIframe: window.parent !== window,
+  smilesDrawer: null,   // SmiDrawer instance for SVG rendering
+  outliersAll: [],      // full sorted outliers (download); the table shows only top 20
+};
+
+// HTML-escape user-supplied strings before interpolating into innerHTML or attributes.
+function esc(v) {
+  if (v === null || v === undefined) return '';
+  return String(v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// ───────────────────────── Theme handling ─────────────────────────
+// localStorage is unavailable in sandboxed iframes (null-origin) — guard every access.
+function _lsGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
+function _lsSet(k, v) { try { localStorage.setItem(k, v); } catch { /* sandboxed */ } }
+function detectInitialTheme() {
+  const explicit = _lsGet('molagent-theme');
+  if (explicit) return explicit;
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    return 'jarvis';
+  return 'atelier';
+}
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  _lsSet('molagent-theme', t);
+  if (state.data) renderAll();  // re-skin Plotly with theme colors
+}
+applyTheme(detectInitialTheme());
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  applyTheme(cur === 'jarvis' ? 'atelier' : 'jarvis');
+});
+
+// ───────────────────── postMessage / iframe glue ─────────────────────
+let _heightTimer = null;
+let _lastEmittedHeight = 0;
+function emitHeight() {
+  if (!state.isInIframe) return;
+  // Debounce + only fire when height changed by >4px to avoid resize loops:
+  // the parent resizes the iframe → reflow inside → ResizeObserver fires → ...
+  clearTimeout(_heightTimer);
+  _heightTimer = setTimeout(() => {
+    const h = Math.max(document.documentElement.offsetHeight, document.body.offsetHeight);
+    if (Math.abs(h - _lastEmittedHeight) < 4) return;
+    _lastEmittedHeight = h;
+    parent.postMessage({ type: 'artifact:height', height: h }, '*');
+  }, 80);
+}
+function emitDraft(text) {
+  if (state.isInIframe) {
+    parent.postMessage({ type: 'artifact:prompt_draft', text }, '*');
+  } else {
+    // Standalone: copy to clipboard as a friendly fallback
+    navigator.clipboard?.writeText(text).then(
+      () => toast('Prompt copied to clipboard'),
+      () => alert(text)
+    );
+  }
+}
+function toast(msg) {
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:10px 16px;background:var(--bg-card);border:1px solid var(--accent-line);border-radius:8px;box-shadow:var(--shadow-elev);z-index:9999;font-family:var(--font-mono);font-size:0.8rem;color:var(--text-primary)';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1800);
+}
+
+window.addEventListener('message', (e) => {
+  // Inbound: { type: 'artifact:setData', payload: <data-blob> }
+  if (e?.data?.type === 'artifact:setData' && e.data.payload) {
+    setData(e.data.payload);
+  }
+});
+
+new ResizeObserver(emitHeight).observe(document.body);
+
+// ───────────────────────── Data loading ─────────────────────────
+function tryParseInitial() {
+  const raw = document.getElementById('initial-data').textContent.trim();
+  // Detect unsubstituted placeholder: literal `{{INITIAL_DATA}}` AND first char is `{`
+  // — guards against the unlikely case where real JSON happens to start with `{{`.
+  if (!raw) return null;
+  if (raw === '{{INITIAL_DATA}}' || raw.startsWith('{{INITIAL_DATA}}')) return null;
+  try { return JSON.parse(raw); }
+  catch (err) { console.warn('Initial data parse failed', err); return null; }
+}
+
+// If Nexus left {{RUN_ID}} or {{ARTIFACT_TITLE}} unsubstituted, swap them for
+// values pulled from the JSON payload (which Nexus DOES substitute).
+function backfillUnsubstitutedPlaceholders(d) {
+  const t = document.getElementById('brandTitle');
+  const s = document.getElementById('brandSubtitle');
+  if (t && t.textContent.includes('{{')) t.textContent = d._title || 'MolAgent Dashboard';
+  if (s && s.textContent.includes('{{')) s.textContent = d._run_id || '';
+}
+
+function setData(d) {
+  state.data = d;
+  state.currentProp = (d._properties && d._properties[0]) || null;
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('mainContent').style.display = 'block';
+  // textContent is XSS-safe — no need for esc()
+  document.getElementById('brandTitle').textContent = d._title || 'MolAgent Dashboard';
+  document.getElementById('brandSubtitle').textContent = d._run_id || '';
+  backfillUnsubstitutedPlaceholders(d);
+  document.getElementById('taskTypeBadge').textContent = d._task_type || '';
+  document.getElementById('taskTypeBadge').className = 'badge ' + (d._task_type === 'classification' ? 'info' : 'success');
+  if ((d._properties || []).length > 1) {
+    document.getElementById('propCountBadge').textContent = (d._properties.length) + ' properties';
+    document.getElementById('propCountBadge').style.display = '';
+    document.getElementById('propPickerWrap').style.display = '';
+    const sel = document.getElementById('propPicker');
+    sel.innerHTML = '';
+    d._properties.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p; opt.textContent = p;
+      sel.appendChild(opt);
+    });
+    sel.value = state.currentProp;
+    sel.addEventListener('change', () => { state.currentProp = sel.value; renderAll(); });
+  }
+  document.getElementById('footerRight').textContent = (new Date()).toLocaleString();
+  buildTabs();
+  renderAll();
+  // Initialize SmiDrawer (high-level SVG API) once data exists
+  if (typeof SmiDrawer !== 'undefined' && !state.smilesDrawer) {
+    state.smilesDrawer = new SmiDrawer({ width: 220, height: 160 });
+  }
+  setTimeout(emitHeight, 80);
+}
+
+// File-picker / drop-zone (standalone fallback)
+function wireFilePicker() {
+  const dz = document.getElementById('dropZone');
+  const fp = document.getElementById('filePicker');
+  dz.addEventListener('click', () => fp.click());
+  dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', (e) => {
+    e.preventDefault(); dz.classList.remove('dragover');
+    const f = e.dataTransfer.files?.[0]; if (f) loadFile(f);
+  });
+  fp.addEventListener('change', (e) => { const f = e.target.files?.[0]; if (f) loadFile(f); });
+}
+function loadFile(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const txt = reader.result;
+      if (file.name.endsWith('.json')) {
+        const obj = JSON.parse(txt);
+        // If it looks like a pipeline_state.json, surface a friendly message —
+        // we can only render if the JSON is the PRE-COMPUTED data blob. The
+        // real pre-compute lives in generate_dashboard.py.
+        if (obj.pipeline_version && obj.outputs) {
+          alert('This is a pipeline_state.json. Run `generate_dashboard.py --pipeline-state ' + file.name + ' --output dashboard.html` to render.');
+          return;
+        }
+        setData(obj);
+      } else {
+        alert('CSV upload not supported in standalone mode — use generate_dashboard.py');
+      }
+    } catch (err) { alert('Could not parse file: ' + err.message); }
+  };
+  reader.readAsText(file);
+}
+
+// ───────────────────────── Tabs ─────────────────────────
+function buildTabs() {
+  const reg = ['overview', 'scatter', 'scatter_ma', 'scatter_cutoff', 'residuals', 'errors', 'error_bars', 'threshold_var', 'enrichment', 'compare'];
+  const clf = ['overview', 'confusion', 'roc', 'pr', 'calibration', 'clf_report', 'f1_threshold', 'enrichment_clf', 'prob_bars', 'compare'];
+  const tabs = state.data._task_type === 'classification' ? clf : reg;
+  // Hide compare/correlation when only one property
+  const single = (state.data._properties || []).length < 2;
+  const filtered = tabs.filter(t => !(single && (t === 'compare' || t === 'correlation')));
+
+  const labels = {
+    overview: 'Overview',
+    scatter: 'Scatter',
+    scatter_ma: 'Moving Avg',
+    scatter_cutoff: 'Cutoff',
+    residuals: 'Residuals',
+    errors: 'Errors',
+    error_bars: 'Error bars',
+    threshold_var: 'Threshold',
+    enrichment: 'Enrichment',
+    compare: 'Compare',
+    confusion: 'Confusion',
+    roc: 'ROC',
+    pr: 'Precision-Recall',
+    calibration: 'Calibration',
+    clf_report: 'Report',
+    f1_threshold: 'F1 Threshold',
+    enrichment_clf: 'Enrichment',
+    prob_bars: 'Prob Bars',
+  };
+  const bar = document.getElementById('tabBar');
+  bar.innerHTML = '';
+  filtered.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'tab-btn';
+    b.textContent = labels[t] || t;
+    b.dataset.tab = t;
+    b.role = 'tab';
+    b.setAttribute('aria-selected', state.currentTab === t ? 'true' : 'false');
+    b.addEventListener('click', () => { state.currentTab = t; updateTabSelection(); renderAll(); });
+    bar.appendChild(b);
+  });
+  if (!filtered.includes(state.currentTab)) state.currentTab = 'overview';
+  updateTabSelection();
+}
+function updateTabSelection() {
+  document.querySelectorAll('.tab-bar .tab-btn').forEach(b => {
+    b.setAttribute('aria-selected', b.dataset.tab === state.currentTab ? 'true' : 'false');
+  });
+  // color-by makes sense for scatter only
+  document.getElementById('overlayCtl').style.display =
+    (state.currentTab === 'scatter' || state.currentTab === 'overview') ? '' : 'none';
+}
+document.getElementById('colorBy').addEventListener('change', (e) => {
+  state.colorBy = e.target.value; renderAll();
+});
+
+// ───────────────────────── Plot helpers ─────────────────────────
+function getThemeColors() {
+  const cs = getComputedStyle(document.documentElement);
+  return {
+    bg: cs.getPropertyValue('--plot-paper').trim(),
+    grid: cs.getPropertyValue('--plot-grid').trim(),
+    axis: cs.getPropertyValue('--plot-axis').trim(),
+    text: cs.getPropertyValue('--text-primary').trim(),
+    muted: cs.getPropertyValue('--text-muted').trim(),
+    accent: cs.getPropertyValue('--accent').trim(),
+    accentStrong: cs.getPropertyValue('--accent-strong').trim(),
+    success: cs.getPropertyValue('--status-success').trim(),
+    warning: cs.getPropertyValue('--status-warning').trim(),
+    error: cs.getPropertyValue('--status-error').trim(),
+    info: cs.getPropertyValue('--status-info').trim(),
+  };
+}
+
+function plotLayout(extra = {}) {
+  const c = getThemeColors();
+  return {
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    font: { family: 'DM Sans, system-ui', color: c.text, size: 12 },
+    margin: { l: 56, r: 28, t: 14, b: 48 },
+    xaxis: { gridcolor: c.grid, zerolinecolor: c.grid, color: c.axis, ...((extra.xaxis) || {}) },
+    yaxis: { gridcolor: c.grid, zerolinecolor: c.grid, color: c.axis, ...((extra.yaxis) || {}) },
+    legend: { font: { color: c.text }, bgcolor: 'rgba(0,0,0,0)' },
+    hoverlabel: { bgcolor: c.bg, font: { color: c.text, family: 'DM Sans, system-ui' }, bordercolor: c.accent },
+    ...extra,
+  };
+}
+function plotConfig() {
+  return { responsive: true, displaylogo: false, toImageButtonOptions: { format: 'png', scale: 2 } };
+}
+
+function plotCard(title, plotId, extraActions = '') {
+  return `
+    <div class="plot-card">
+      <div class="plot-card-head">
+        <span class="plot-card-title">${title}</span>
+        <div class="plot-card-actions">${extraActions}</div>
+      </div>
+      <div class="plot-card-body"><div id="${plotId}" style="height:380px"></div></div>
+    </div>`;
+}
+
+// ───────────────────────── Metrics (hero row) ─────────────────────────
+function renderMetrics() {
+  const row = document.getElementById('metricsRow');
+  row.innerHTML = '';
+  const pdata = state.data[state.currentProp];
+  if (!pdata) return;
+
+  const m = pdata.metrics || {};
+  const cards = [];
+
+  if (state.data._task_type === 'classification') {
+    const fmt = (v) => (typeof v === 'number' ? v.toFixed(3) : '—');
+    cards.push({ label: 'Accuracy', value: fmt(m.accuracy), tone: m.accuracy >= 0.85 ? 'success' : (m.accuracy >= 0.7 ? 'warning' : 'error') });
+    cards.push({ label: 'F1 (macro)', value: fmt(m.f1 ?? m.f1_macro), tone: 'success' });
+    cards.push({ label: 'AUC', value: fmt(m.auc ?? m.roc_auc), tone: 'success' });
+    cards.push({ label: 'N test', value: pdata.n_samples ?? '—', tone: 'success' });
+  } else {
+    const fmt = (v) => (typeof v === 'number' ? v.toFixed(3) : '—');
+    cards.push({ label: 'R²', value: fmt(m.r2 ?? m.R2), tone: (m.r2 ?? m.R2) >= 0.7 ? 'success' : ((m.r2 ?? m.R2) >= 0.5 ? 'warning' : 'error') });
+    cards.push({ label: 'RMSE', value: fmt(m.rmse ?? Math.sqrt(m.mse ?? NaN)), tone: 'success' });
+    cards.push({ label: 'MAE', value: fmt(m.mae ?? m.MAE), tone: 'success' });
+    cards.push({ label: 'Pearson r', value: fmt(m.pearson ?? pdata.pearson), tone: 'success' });
+    cards.push({ label: 'N test', value: pdata.n_samples ?? '—', tone: 'success' });
+  }
+  for (const c of cards) {
+    // c.label is hardcoded; c.value comes from numbers (may be '—'). Escape both for safety.
+    row.innerHTML += `<div class="metric-card">
+      <div class="metric-label">${esc(c.label)}</div>
+      <div class="metric-value ${esc(c.tone || '')}">${esc(c.value)}</div>
+    </div>`;
+  }
+}
+
+// ───────────────────────── Provenance card ─────────────────────────
+function renderProvenance() {
+  const ti = (state.data._train_info || {})[state.currentProp] || {};
+  const cfg = state.data._config || {};
+  const items = [
+    ['Run ID', state.data._run_id],
+    ['Dataset', cfg.data_file || ti.dataset || '—'],
+    ['SMILES column', cfg.smiles_column || ti.smiles_column || 'Stand_SMILES'],
+    ['Task', state.data._task_type],
+    ['Features', (cfg.feature_keys || ti.feature_keys || []).join(', ') || '—'],
+    ['Compute load', cfg.computational_load || ti.computational_load || '—'],
+    ['Split strategy', cfg.split_strategy || '—'],
+    ['Outer folds', ti.outer_folds ?? '—'],
+    ['Random state', ti.random_state ?? '—'],
+    ['Train size', ti.train_size ?? '—'],
+    ['Validation size', ti.validation_size ?? '—'],
+    ['Blender properties', (ti.blender_properties || ti.blender_list || cfg.blender_properties || []).filter(Boolean).join(', ') || '—'],
+  ];
+  const body = document.getElementById('provenanceBody');
+  body.innerHTML = items.map(([k, v]) => `<div class="kv">
+    <div class="kv-label">${esc(k)}</div>
+    <div class="kv-value">${esc(v)}</div>
+  </div>`).join('');
+}
+
+// ───────────────────────── Tooltip drawing ─────────────────────────
+const tooltipEl = document.getElementById('smilesTooltip');
+const tooltipSvg = document.getElementById('smilesSvg');
+const tooltipInfo = document.getElementById('smilesInfo');
+
+function showSmilesTooltip(smiles, info, x, y) {
+  if (!smiles) return;
+  if (!state.smilesDrawer) return;
+  const theme = document.documentElement.getAttribute('data-theme') === 'jarvis' ? 'dark' : 'light';
+  try {
+    // Clear previous drawing
+    while (tooltipSvg.firstChild) tooltipSvg.removeChild(tooltipSvg.firstChild);
+    state.smilesDrawer.drawMolecule(smiles, tooltipSvg, theme);
+  } catch (e) { return; }
+  tooltipInfo.textContent = info || '';
+  tooltipEl.style.display = 'block';
+  positionTooltip(x, y);
+}
+function positionTooltip(x, y) {
+  const w = 240, h = 200;
+  let px = x + 16, py = y + 16;
+  if (px + w > window.innerWidth) px = x - w - 16;
+  if (py + h > window.innerHeight) py = y - h - 16;
+  tooltipEl.style.left = px + 'px';
+  tooltipEl.style.top = py + 'px';
+}
+function hideSmilesTooltip() { tooltipEl.style.display = 'none'; }
+
+// ───────────────────────── Outlier table ─────────────────────────
+function renderOutlierTable() {
+  if (state.data._task_type === 'classification') {
+    document.getElementById('outlierWrap').style.display = 'none';
+    return;
+  }
+  const pdata = state.data[state.currentProp];
+  if (!pdata || !pdata.true || !pdata.predicted) return;
+
+  // Full sorted list — used by the download button so users get ALL outliers,
+  // not just the visible 20.
+  const allSorted = pdata.true.map((t, i) => ({
+    i, true: t, pred: pdata.predicted[i],
+    err: Math.abs(t - pdata.predicted[i]),
+    smiles: pdata.smiles?.[i] || '',
+    sd: pdata.sd?.[i],
+  })).sort((a, b) => b.err - a.err);
+  state.outliersAll = allSorted;
+  const items = allSorted.slice(0, 20);
+
+  const wrap = document.getElementById('outlierWrap');
+  wrap.style.display = 'block';
+  const tbody = document.querySelector('#outlierTable tbody');
+  tbody.innerHTML = items.map((row) => `
+    <tr data-smiles="${esc(row.smiles)}" data-info="True ${row.true.toFixed(3)} · Pred ${row.pred.toFixed(3)}">
+      <td class="mono">${row.i}</td>
+      <td class="mono smiles-cell" title="${esc(row.smiles)}">${esc(row.smiles) || '—'}</td>
+      <td><svg class="smiles-canvas" data-smi="${esc(row.smiles)}" xmlns="http://www.w3.org/2000/svg"></svg></td>
+      <td class="mono">${row.true.toFixed(3)}</td>
+      <td class="mono">${row.pred.toFixed(3)}</td>
+      <td class="mono"><strong>${row.err.toFixed(3)}</strong></td>
+    </tr>`).join('');
+
+  // Render small structures
+  if (state.smilesDrawer) {
+    const theme = document.documentElement.getAttribute('data-theme') === 'jarvis' ? 'dark' : 'light';
+    const smallDrawer = new SmiDrawer({ width: 120, height: 60 });
+    document.querySelectorAll('.smiles-canvas').forEach((svgEl) => {
+      const smi = svgEl.dataset.smi;
+      if (!smi) return;
+      try { smallDrawer.drawMolecule(smi, svgEl, theme); } catch (e) {}
+    });
+  }
+
+  document.querySelectorAll('#outlierTable tr').forEach((tr) => {
+    tr.addEventListener('mousemove', (e) => showSmilesTooltip(tr.dataset.smiles, tr.dataset.info, e.clientX, e.clientY));
+    tr.addEventListener('mouseleave', hideSmilesTooltip);
+  });
+
+  // Download ALL outliers (sorted by |err|), not just the displayed 20
+  document.getElementById('downloadOutliers').onclick = () => downloadOutliersCsv(state.outliersAll);
+  document.getElementById('askClaudeOutliers').onclick = () => {
+    const lines = items.slice(0, 10).map(r => `- ${r.smiles}  true=${r.true.toFixed(3)}  pred=${r.pred.toFixed(3)}  err=${r.err.toFixed(3)}`).join('\n');
+    emitDraft(`The model has the following worst outliers on property "${state.currentProp}":\n\n${lines}\n\nWhat structural features might explain these errors?`);
+  };
+}
+
+function downloadOutliersCsv(items) {
+  const csv = [
+    'index,smiles,true,predicted,abs_error,sd',
+    ...items.map(r => `${r.i},"${r.smiles}",${r.true},${r.pred},${r.err},${r.sd ?? ''}`)
+  ].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `${state.currentProp}_outliers.csv`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ───────────────────────── Plotly renderers (regression) ─────────────────────────
+function renderScatter(host) {
+  const c = getThemeColors();
+  const p = state.data[state.currentProp];
+  const errs = p.true.map((t, i) => Math.abs(t - p.predicted[i]));
+  let colors = c.accent;
+  let cb = null;
+  if (state.colorBy === 'error') {
+    colors = errs;
+    cb = { colorscale: [[0, c.success], [0.5, c.warning], [1, c.error]], colorbar: { title: '|err|', tickfont: { color: c.text } } };
+  } else if (state.colorBy === 'sd' && p.sd?.length) {
+    colors = p.sd;
+    cb = { colorscale: 'Viridis', colorbar: { title: 'SD', tickfont: { color: c.text } } };
+  }
+  const all = [...p.true, ...p.predicted];
+  const lo = Math.min(...all) - 0.1, hi = Math.max(...all) + 0.1;
+  const line = [lo, hi];
+  const mae = p.mae_value;
+  const f1 = p.fold1_pct, f2 = p.fold2_pct;
+  const bandColor = 'rgba(78,204,163,';
+  const traces = [
+    // MAE band traces (order matters for fill)
+    { x: line, y: line.map(v => v + 2*mae), mode: 'lines', showlegend: false, hoverinfo: 'skip', line: { color: bandColor+'0.3)', width: 1 } },
+    { x: line, y: line.map(v => v + 1*mae), mode: 'lines', showlegend: false, fill: 'tonexty', hoverinfo: 'skip', line: { color: bandColor+'0.4)', width: 1 }, fillcolor: bandColor+'0.1)' },
+    { x: line, y: line,                     mode: 'lines', showlegend: false, fill: 'tonexty', hoverinfo: 'skip', line: { color: bandColor+'0.6)', width: 1.5, dash: 'dash' }, fillcolor: bandColor+'0.2)' },
+    { x: line, y: line.map(v => v - 1*mae), mode: 'lines', name: `${f1}% within 1× MAE`, fill: 'tonexty', hoverinfo: 'skip', line: { color: bandColor+'0.4)', width: 1 }, fillcolor: bandColor+'0.2)' },
+    { x: line, y: line.map(v => v - 2*mae), mode: 'lines', name: `${f2}% within 2× MAE`, fill: 'tonexty', hoverinfo: 'skip', line: { color: bandColor+'0.3)', width: 1 }, fillcolor: bandColor+'0.1)' },
+    // Data points on top
+    {
+      x: p.true, y: p.predicted, mode: 'markers',
+      type: 'scattergl', name: 'Test samples',
+      marker: { size: 6, color: colors, opacity: 0.75, ...(cb || {}) },
+      hovertemplate: '<b>True:</b> %{x:.3f}<br><b>Pred:</b> %{y:.3f}<extra></extra>',
+      customdata: p.smiles,
+    },
+  ];
+  Plotly.newPlot(host, traces, plotLayout({
+    xaxis: { title: { text: 'True ' + state.currentProp } },
+    yaxis: { title: { text: 'Predicted ' + state.currentProp } },
+  }), plotConfig());
+  // Hover SMILES tooltip
+  document.getElementById(host).on('plotly_hover', (e) => {
+    const pt = e.points[0];
+    if (pt && pt.customdata) {
+      const r = host.getBoundingClientRect ? host.getBoundingClientRect() : { left: 0, top: 0 };
+      showSmilesTooltip(pt.customdata, `True ${pt.x.toFixed(3)} · Pred ${pt.y.toFixed(3)}`, e.event.clientX, e.event.clientY);
+    }
+  });
+  document.getElementById(host).on('plotly_unhover', hideSmilesTooltip);
+}
+
+function renderResiduals(host) {
+  const card = document.getElementById(host).parentElement;
+  card.style.height = 'auto';
+  document.getElementById(host).style.height = '340px';
+
+  const c = getThemeColors();
+  const p = state.data[state.currentProp];
+  const resid = p.true.map((t, i) => t - p.predicted[i]);
+
+  function draw() {
+    Plotly.react(host, [{
+      x: p.predicted, y: resid,
+      customdata: p.smiles,
+      mode: 'markers', type: 'scattergl',
+      marker: { size: 6, color: c.accent, opacity: 0.65 },
+      hovertemplate: '<b>Pred:</b> %{x:.3f}<br><b>Residual:</b> %{y:.3f}<extra></extra>',
+    }, {
+      x: [Math.min(...p.predicted), Math.max(...p.predicted)], y: [0, 0],
+      mode: 'lines', line: { color: c.accentStrong, width: 1.5, dash: 'dash' }, hoverinfo: 'skip', showlegend: false,
+    }], plotLayout({
+      xaxis: { title: { text: 'Predicted' } },
+      yaxis: { title: { text: 'Residual (True - Pred)' } },
+    }), plotConfig());
+    document.getElementById(host).on('plotly_hover', (e) => {
+      const pt = e.points[0];
+      if (pt?.customdata) showSmilesTooltip(pt.customdata, `Pred ${pt.x.toFixed(3)} · Res ${pt.y.toFixed(3)}`, e.event.clientX, e.event.clientY);
+    });
+    document.getElementById(host).on('plotly_unhover', hideSmilesTooltip);
+  }
+  draw();
+}
+
+function renderErrorHist(host) {
+  const hostEl = document.getElementById(host);
+  const body = hostEl.parentElement;
+
+  // Inject controls above the plot div
+  if (!body.querySelector('.plot-controls')) {
+    const ctrl = document.createElement('div');
+    ctrl.className = 'plot-controls';
+    ctrl.innerHTML = `<label>Bins <input type="range" id="${host}-bins" min="5" max="80" step="1" value="30">
+      <span class="ctrl-val" id="${host}-bins-val">30</span></label>`;
+    body.insertBefore(ctrl, hostEl);
+    hostEl.style.height = '340px';
+  }
+
+  const binsInput = document.getElementById(`${host}-bins`);
+  const binsVal   = document.getElementById(`${host}-bins-val`);
+
+  const p = state.data[state.currentProp];
+  const errs = p.true.map((t, i) => Math.abs(t - p.predicted[i]));
+  const eMin = Math.min(...errs), eMax = Math.max(...errs);
+
+  function draw() {
+    const c = getThemeColors();
+    const nb = parseInt(binsInput.value);
+    binsVal.textContent = nb;
+
+    // Compute exact bins manually so the slider always has immediate effect
+    const binWidth = (eMax - eMin) / nb;
+    const counts = new Array(nb).fill(0);
+    errs.forEach(e => {
+      const bi = Math.min(nb - 1, Math.floor((e - eMin) / binWidth));
+      if (bi >= 0) counts[bi]++;
+    });
+    const binCenters = Array.from({length: nb}, (_, i) => eMin + (i + 0.5) * binWidth);
+    const binLabels  = Array.from({length: nb}, (_, i) =>
+      `${(eMin + i * binWidth).toFixed(3)}–${(eMin + (i+1) * binWidth).toFixed(3)}`);
+
+    Plotly.react(host, [{
+      x: binCenters, y: counts, type: 'bar', width: binWidth * 0.95,
+      marker: { color: c.accent, line: { color: c.accentStrong, width: 1 } },
+      text: binLabels,
+      hovertemplate: '<b>Range:</b> %{text}<br><b>Count:</b> %{y}<extra></extra>',
+    }], plotLayout({
+      xaxis: { title: { text: 'Absolute error' }, tickformat: '.3f' },
+      yaxis: { title: { text: 'Count' } },
+      bargap: 0.02,
+    }), plotConfig());
+  }
+  binsInput.oninput = draw;
+  draw();
+}
+
+function renderEnrichment(host) {
+  const c = getThemeColors();
+  const p = state.data[state.currentProp];
+  const enr = p.enrichment;
+  if (!enr) { document.getElementById(host).innerHTML = '<p style="color:var(--text-muted);padding:20px">No enrichment data</p>'; return; }
+  Plotly.newPlot(host, [{
+    x: enr.sf, y: enr.tpf, mode: 'lines', name: 'True Pos. Fraction',
+    fill: 'tozeroy', fillcolor: 'rgba(78,204,163,0.15)',
+    line: { color: c.success, width: 2 },
+  }, {
+    x: [0, 1], y: [0, 1], mode: 'lines', name: 'random',
+    line: { color: c.muted, width: 1.5, dash: 'dash' }, hoverinfo: 'skip',
+  }], plotLayout({
+    xaxis: { title: { text: 'Selected fraction' }, range: [0, 1] },
+    yaxis: { title: { text: 'True positive fraction' }, range: [0, 1.05] },
+    annotations: [{ xref: 'paper', yref: 'paper', x: 0.02, y: 0.98, showarrow: false,
+      text: `cutoff = ${enr.cutoff}`, font: { color: c.muted, size: 11 }, xanchor: 'left' }],
+  }), plotConfig());
+}
+
+// ───────────────────────── Plotly renderers (classification) ─────────────────────────
+function renderConfusion(host) {
+  const c = getThemeColors();
+  const p = state.data[state.currentProp];
+  const m = p.confusion_matrix || [];
+  const cellText = p.confusion_matrix_text || m.map(row => row.map(v => String(v)));
+  const labels = p.class_labels || m.map((_, i) => 'Class ' + i);
+  const maxVal = Math.max(...m.flat(), 1);
+  const accuracy = m.length ? (m.reduce((s, row, i) => s + row[i], 0) / m.flat().reduce((a, b) => a + b, 0)) : 0;
+  const annotations = m.flatMap((row, ri) =>
+    row.map((val, ci) => ({
+      x: labels[ci], y: labels[ri],
+      text: cellText[ri][ci], showarrow: false, align: 'center',
+      font: { color: val / maxVal > 0.45 ? '#ffffff' : c.text, size: Math.max(22 - 2 * labels.length, 10) },
+    }))
+  );
+  Plotly.newPlot(host, [{
+    z: m, x: labels, y: labels, type: 'heatmap',
+    colorscale: [[0, 'rgba(0,0,0,0)'], [1, c.accent]],
+    showscale: false,
+    hovertemplate: 'True %{y} · Pred %{x}: <b>%{z}</b><extra></extra>',
+  }], plotLayout({
+    title: { text: `Confusion Matrix — <b>Accuracy: ${accuracy.toFixed(3)}</b>`, font: { size: 16 }, y: 0.97 },
+    xaxis: { title: { text: 'Predicted label', standoff: 12 }, side: 'top', showgrid: false, zeroline: false },
+    yaxis: { title: { text: 'True label' }, autorange: 'reversed', showgrid: false, zeroline: false },
+    annotations,
+    margin: { l: 80, r: 28, t: 80, b: 20 },
+  }), plotConfig());
+}
+
+function renderRoc(host) {
+  const c = getThemeColors();
+  const p = state.data[state.currentProp];
+  const traces = [];
+  for (const [name, curve] of Object.entries(p.roc_curves || {})) {
+    traces.push({ x: curve.fpr, y: curve.tpr, mode: 'lines', name: `${name} (AUC=${(curve.auc ?? 0).toFixed(3)})`,
+      line: { width: 2 } });
+  }
+  traces.push({ x: [0, 1], y: [0, 1], mode: 'lines', name: 'random', line: { color: c.muted, dash: 'dash' } });
+  Plotly.newPlot(host, traces, plotLayout({
+    xaxis: { title: { text: 'False positive rate' }, range: [0, 1] },
+    yaxis: { title: { text: 'True positive rate' }, range: [0, 1.02] },
+  }), plotConfig());
+}
+
+function renderPr(host) {
+  const c = getThemeColors();
+  const p = state.data[state.currentProp];
+  const traces = [];
+  for (const [name, curve] of Object.entries(p.pr_curves || {})) {
+    traces.push({ x: curve.recall, y: curve.precision, mode: 'lines', name, line: { width: 2 } });
+  }
+  Plotly.newPlot(host, traces, plotLayout({
+    xaxis: { title: { text: 'Recall' }, range: [0, 1] },
+    yaxis: { title: { text: 'Precision' }, range: [0, 1.02] },
+  }), plotConfig());
+}
+
+function renderCalibration(host) {
+  const c = getThemeColors();
+  const p = state.data[state.currentProp];
+  const cal = p.calibration || {};
+  const traces = [];
+  for (const [name, curve] of Object.entries(cal)) {
+    traces.push({ x: curve.mean_predicted, y: curve.fraction_positive, mode: 'lines+markers', name,
+      line: { width: 2 }, marker: { size: 8 } });
+  }
+  traces.push({ x: [0, 1], y: [0, 1], mode: 'lines', name: 'perfect', line: { color: c.muted, dash: 'dash' } });
+  Plotly.newPlot(host, traces, plotLayout({
+    xaxis: { title: { text: 'Mean predicted probability' }, range: [0, 1] },
+    yaxis: { title: { text: 'Fraction of positives' }, range: [0, 1.02] },
+  }), plotConfig());
+}
+
+// ───────────────────────── Regression: missing plots ─────────────────────────
+function renderScatterMA(host) {
+  const c = getThemeColors();
+  const p = state.data[state.currentProp];
+  const ma = p.moving_avg;
+  if (!ma) { document.getElementById(host).innerHTML = '<p style="color:var(--text-muted);padding:20px">No moving average data</p>'; return; }
+  const all = [...p.true, ...p.predicted];
+  const lo = Math.min(...all) - 0.1, hi = Math.max(...all) + 0.1;
+  Plotly.newPlot(host, [
+    { x: p.true, y: p.predicted, mode: 'markers', type: 'scattergl', name: 'Samples',
+      customdata: p.smiles, marker: { size: 5, color: c.accent, opacity: 0.55 },
+      hovertemplate: '<b>True:</b> %{x:.3f}<br><b>Pred:</b> %{y:.3f}<extra></extra>' },
+    { x: [lo, hi], y: [lo, hi], mode: 'lines', name: 'y=x', showlegend: false,
+      line: { color: c.accentStrong, width: 1.5, dash: 'dash' }, hoverinfo: 'skip' },
+    { x: ma.true_sorted, y: ma.true_sorted.map((v, i) => v - ma.ma_error[i]),
+      mode: 'lines', name: 'Moving avg error', line: { color: c.warning, width: 2 } },
+    { x: ma.true_sorted, y: ma.true_sorted.map((v, i) => v + ma.ma_error[i]),
+      mode: 'lines', showlegend: false, line: { color: c.warning, width: 2 } },
+  ], plotLayout({
+    xaxis: { title: { text: 'True ' + state.currentProp } },
+    yaxis: { title: { text: 'Predicted ' + state.currentProp } },
+  }), plotConfig());
+  document.getElementById(host).on('plotly_hover', (e) => {
+    const pt = e.points[0];
+    if (pt && pt.customdata) showSmilesTooltip(pt.customdata, `True ${pt.x.toFixed(3)} · Pred ${pt.y.toFixed(3)}`, e.event.clientX, e.event.clientY);
+  });
+  document.getElementById(host).on('plotly_unhover', hideSmilesTooltip);
+}
+
+function renderScatterCutoff(host) {
+  const hostEl = document.getElementById(host);
+  const body = hostEl.parentElement;
+  const p = state.data[state.currentProp];
+  if (!p?.true) { hostEl.innerHTML = '<p style="color:var(--text-muted);padding:20px">No data</p>'; return; }
+
+  const allTrue = p.true;
+  const tMin = Math.min(...allTrue), tMax = Math.max(...allTrue);
+  const initCutoff = p.cutoff_scatter?.cutoff ?? ((tMin + tMax) / 2);
+  const step = parseFloat(((tMax - tMin) / 200).toPrecision(2)) || 0.01;
+
+  if (!body.querySelector('.plot-controls')) {
+    const ctrl = document.createElement('div');
+    ctrl.className = 'plot-controls';
+    ctrl.innerHTML = `<label>Cutoff
+      <input type="range" id="${host}-cut" min="${tMin}" max="${tMax}" step="${step}" value="${initCutoff}">
+      <span class="ctrl-val" id="${host}-cut-val">${initCutoff.toFixed(3)}</span></label>`;
+    body.insertBefore(ctrl, hostEl);
+    hostEl.style.height = '340px';
+  }
+
+  const cutInput = document.getElementById(`${host}-cut`);
+  const cutVal   = document.getElementById(`${host}-cut-val`);
+
+  function draw() {
+    const c = getThemeColors();
+    const cutoff = parseFloat(cutInput.value);
+    cutVal.textContent = cutoff.toFixed(3);
+
+    const tLabel = allTrue.map(v => v > cutoff);
+    const pLabel = p.predicted.map(v => v > cutoff);
+    const groups = [
+      { label: 'TP', color: c.success  },
+      { label: 'TN', color: c.error    },
+      { label: 'FP', color: c.info     },
+      { label: 'FN', color: c.warning  },
+    ];
+    const xi = [[], [], [], []], yi = [[], [], [], []], si = [[], [], [], []];
+    allTrue.forEach((t, i) => {
+      const tp = pLabel[i] && tLabel[i], tn = !pLabel[i] && !tLabel[i],
+            fp = pLabel[i] && !tLabel[i], fn = !pLabel[i] && tLabel[i];
+      const gi = tp ? 0 : tn ? 1 : fp ? 2 : 3;
+      xi[gi].push(t); yi[gi].push(p.predicted[i]); si[gi].push(p.smiles?.[i] || '');
+    });
+    const n = allTrue.length;
+    const traces = groups.map((g, i) => ({
+      x: xi[i], y: yi[i], customdata: si[i], mode: 'markers', type: 'scattergl',
+      name: `${g.label}: ${xi[i].length} (${(100*xi[i].length/n).toFixed(1)}%)`,
+      marker: { color: g.color, size: 6, opacity: 0.7 },
+      hovertemplate: '<b>True:</b> %{x:.3f}<br><b>Pred:</b> %{y:.3f}<extra></extra>',
+    }));
+
+    Plotly.react(host, traces, plotLayout({
+      xaxis: { title: { text: 'True ' + state.currentProp } },
+      yaxis: { title: { text: 'Predicted ' + state.currentProp } },
+      shapes: [
+        { type: 'line', x0: cutoff, x1: cutoff, y0: 0, y1: 1, yref: 'paper', line: { color: c.muted, width: 2, dash: 'dash' } },
+        { type: 'line', y0: cutoff, y1: cutoff, x0: 0, x1: 1, xref: 'paper', line: { color: c.muted, width: 2, dash: 'dash' } },
+      ],
+    }), plotConfig());
+
+    document.getElementById(host).on('plotly_hover', (e) => {
+      const pt = e.points[0];
+      if (pt?.customdata) showSmilesTooltip(pt.customdata, `True ${pt.x.toFixed(3)} · Pred ${pt.y.toFixed(3)}`, e.event.clientX, e.event.clientY);
+    });
+    document.getElementById(host).on('plotly_unhover', hideSmilesTooltip);
+  }
+
+  cutInput.oninput = draw;
+  draw();
+}
+
+function renderErrorBars(host) {
+  const hostEl = document.getElementById(host);
+  const body = hostEl.parentElement;
+  const p = state.data[state.currentProp];
+  if (!p?.true) { hostEl.innerHTML = '<p style="color:var(--text-muted);padding:20px">No data</p>'; return; }
+
+  if (!body.querySelector('.plot-controls')) {
+    const ctrl = document.createElement('div');
+    ctrl.className = 'plot-controls';
+    ctrl.innerHTML = `
+      <label>Bins <input type="range" id="${host}-bins" min="3" max="20" step="1" value="8">
+        <span class="ctrl-val" id="${host}-bins-val">8</span></label>
+      <label>Error cuts <input type="range" id="${host}-cuts" min="2" max="8" step="1" value="4">
+        <span class="ctrl-val" id="${host}-cuts-val">4</span></label>`;
+    body.insertBefore(ctrl, hostEl);
+    hostEl.style.height = '340px';
+  }
+
+  const binsInput = document.getElementById(`${host}-bins`);
+  const binsVal   = document.getElementById(`${host}-bins-val`);
+  const cutsInput = document.getElementById(`${host}-cuts`);
+  const cutsVal   = document.getElementById(`${host}-cuts-val`);
+
+  const yTrue = p.true, yPred = p.predicted;
+  const absErrors = yTrue.map((t, i) => Math.abs(t - yPred[i]));
+  const mae = p.mae_value ?? (absErrors.reduce((s, v) => s + v, 0) / absErrors.length);
+  const tMin = Math.min(...yTrue), tMax = Math.max(...yTrue);
+
+  function draw() {
+    const c = getThemeColors();
+    const nBins = parseInt(binsInput.value);
+    const nCuts = parseInt(cutsInput.value);
+    binsVal.textContent = nBins;
+    cutsVal.textContent = nCuts;
+
+    // Build bin edges and labels
+    const binEdges = Array.from({length: nBins + 1}, (_, i) => tMin + i * (tMax - tMin) / nBins);
+    const binLabels = binEdges.slice(0, -1).map((lo, i) => `${lo.toFixed(2)}–${binEdges[i+1].toFixed(2)}`);
+
+    // Build error threshold cuts evenly spaced in multiples of MAE
+    const cutMults = Array.from({length: nCuts}, (_, i) => (i + 1) / nCuts * 2); // e.g. [0.5, 1.0, 1.5, 2.0] for 4
+    const cutThresh = cutMults.map(m => m * mae);
+    const cutLabels = cutMults.map((m, i) => {
+      const lo = i === 0 ? `<${(m * mae).toFixed(2)}` : `${(cutMults[i-1]*mae).toFixed(2)}–${(m*mae).toFixed(2)}`;
+      return lo;
+    });
+    cutLabels.push(`>${(cutMults[nCuts-1]*mae).toFixed(2)}`);
+
+    // Assign each sample to a bin and error band
+    const series = {};
+    const binCounts = new Array(nBins).fill(0);
+    cutLabels.forEach(l => { series[l] = new Array(nBins).fill(0); });
+
+    yTrue.forEach((t, si) => {
+      const err = absErrors[si];
+      const bi = Math.min(nBins - 1, Math.floor((t - tMin) / (tMax - tMin) * nBins));
+      if (bi < 0) return;
+      binCounts[bi]++;
+      let band = cutLabels[nCuts]; // last band (> max)
+      for (let k = 0; k < nCuts; k++) { if (err < cutThresh[k]) { band = cutLabels[k]; break; } }
+      series[band][bi]++;
+    });
+    // Convert to fractions
+    Object.keys(series).forEach(lbl => {
+      series[lbl] = series[lbl].map((cnt, bi) => binCounts[bi] > 0 ? parseFloat((cnt / binCounts[bi]).toFixed(4)) : 0);
+    });
+
+    // Gradient: dark green → yellow → dark red, one stop per cut band
+    const nBands = cutLabels.length;
+    const gradColors = cutLabels.map((_, i) => {
+      const t = nBands === 1 ? 0 : i / (nBands - 1); // 0 = green, 1 = red
+      const r = Math.round(t < 0.5 ? 20 + t * 2 * (200 - 20) : 200 + (t - 0.5) * 2 * (160 - 200));
+      const g = Math.round(t < 0.5 ? 100 + t * 2 * (180 - 100) : 180 - (t - 0.5) * 2 * 180);
+      const b = Math.round(20 - t * 20);
+      return `rgb(${r},${g},${b})`;
+    });
+    const traces = cutLabels.map((lbl, i) => ({
+      x: binLabels, y: series[lbl], name: lbl, type: 'bar',
+      marker: { color: gradColors[i] },
+      text: series[lbl].map(v => v > 0.05 ? v.toFixed(2) : ''),
+      textposition: 'inside', textfont: { size: 10 },
+      hovertemplate: '<b>Bin:</b> %{x}<br><b>Fraction:</b> %{y:.2f}<br><b>Error:</b> ' + lbl + '<extra></extra>',
+    }));
+
+    Plotly.react(host, traces, plotLayout({
+      barmode: 'stack',
+      xaxis: { title: { text: 'True value bins' }, type: 'category' },
+      yaxis: { title: { text: 'Relative counts' }, range: [0, 1.08] },
+      annotations: binCounts.map((cnt, i) => ({
+        x: binLabels[i], y: 1.0, text: String(cnt), showarrow: false, yshift: 8,
+        font: { size: 10, color: c.muted },
+      })),
+    }), plotConfig());
+  }
+
+  binsInput.oninput = draw;
+  cutsInput.oninput = draw;
+  draw();
+}
+
+function renderThresholdVar(host) {
+  const c = getThemeColors();
+  const p = state.data[state.currentProp];
+  const tv = p.threshold_variation;
+  if (!tv) { document.getElementById(host).innerHTML = '<p style="color:var(--text-muted);padding:20px">No threshold variation data</p>'; return; }
+  const series = [
+    { y: tv.accuracy, name: 'Accuracy', color: c.error },
+    { y: tv.precision, name: 'Precision', color: c.success },
+    { y: tv.recall, name: 'Recall', color: c.info },
+    { y: tv.positive_ratio, name: 'Positive ratio', color: c.warning },
+  ];
+  Plotly.newPlot(host, series.map(s => ({
+    x: tv.cutoffs, y: s.y, mode: 'lines', name: s.name, line: { color: s.color, width: 2 },
+  })), plotLayout({
+    xaxis: { title: { text: 'Threshold' } },
+    yaxis: { title: { text: '%' } },
+  }), plotConfig());
+}
+
+// ───────────────────────── Classification: missing plots ─────────────────────────
+function renderClfReport(host) {
+  const p = state.data[state.currentProp];
+  const rpt = p.classification_report;
+  const m = p.confusion_matrix || [];
+  const labels = p.class_labels || [];
+  const metrics = p.metrics || {};
+  const el = document.getElementById(host);
+  if (!rpt || !el) return;
+
+  const fmt = v => (v == null ? '—' : typeof v === 'number' ? v.toFixed(3) : v);
+
+  // Derive TP/FP/FN/TN per class from confusion matrix
+  const n = labels.length;
+  const classStats = labels.map((lbl, i) => {
+    const tp = m[i]?.[i] ?? 0;
+    const fp = m.reduce((s, row, r) => r !== i ? s + (row[i] ?? 0) : s, 0);
+    const fn = (m[i] ?? []).reduce((s, v, c) => c !== i ? s + v : s, 0);
+    const tn = m.flat().reduce((s, v) => s, 0) - tp - fp - fn;
+    const row = rpt.row_labels.indexOf(lbl) >= 0 ? rpt.z[rpt.row_labels.indexOf(lbl)] : null;
+    return { lbl, tp, fp, fn, tn: Math.max(0, tn), prec: row?.[0], rec: row?.[1], f1: row?.[2] };
+  });
+
+  // Macro avg row
+  const macroIdx = rpt.row_labels.indexOf('macro avg');
+  const macroRow = macroIdx >= 0 ? rpt.z[macroIdx] : null;
+  const wAvgIdx = rpt.row_labels.indexOf('weighted avg');
+  const wAvgRow = wAvgIdx >= 0 ? rpt.z[wAvgIdx] : null;
+
+  const thStyle = `font-family:var(--font-mono);font-size:0.66rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);background:var(--bg-elevated);padding:10px 14px;border-bottom:1px solid var(--border-soft);text-align:center;`;
+  const thLStyle = thStyle + 'text-align:left;';
+  const tdStyle = `padding:10px 14px;border-bottom:1px solid var(--border-soft);text-align:center;font-size:0.85rem;`;
+  const tdLStyle = tdStyle + 'text-align:left;font-family:var(--font-mono);font-weight:500;';
+  const tdSepStyle = tdStyle + 'background:var(--bg-soft);font-weight:600;';
+  const tdSepLStyle = tdSepStyle + 'text-align:left;font-family:var(--font-mono);';
+
+  const classRows = classStats.map(s => `
+    <tr>
+      <td style="${tdLStyle}">Class ${s.lbl}</td>
+      <td style="${tdStyle}">${s.tp}</td>
+      <td style="${tdStyle}">${s.tn}</td>
+      <td style="${tdStyle}">${s.fp}</td>
+      <td style="${tdStyle}">${s.fn}</td>
+      <td style="${tdStyle}">${fmt(s.prec)}</td>
+      <td style="${tdStyle}">${fmt(s.rec)}</td>
+      <td style="${tdStyle}">${fmt(s.f1)}</td>
+    </tr>`).join('');
+
+  const totalTp = classStats.reduce((s, r) => s + r.tp, 0);
+  const totalN  = m.flat().reduce((a, b) => a + b, 0) || 1;
+  const accuracy = fmt(metrics.accuracy ?? totalTp / totalN);
+  const auc      = fmt(metrics.auc ?? metrics.roc_auc);
+
+  el.style.padding = '18px';
+  el.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th style="${thLStyle}">Class</th>
+          <th style="${thStyle}">TP</th>
+          <th style="${thStyle}">TN</th>
+          <th style="${thStyle}">FP</th>
+          <th style="${thStyle}">FN</th>
+          <th style="${thStyle}">Precision</th>
+          <th style="${thStyle}">Recall</th>
+          <th style="${thStyle}">F1</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${classRows}
+        ${macroRow ? `<tr>
+          <td style="${tdSepLStyle}">Macro avg</td>
+          <td colspan="4" style="${tdSepStyle}"></td>
+          <td style="${tdSepStyle}">${fmt(macroRow[0])}</td>
+          <td style="${tdSepStyle}">${fmt(macroRow[1])}</td>
+          <td style="${tdSepStyle}">${fmt(macroRow[2])}</td>
+        </tr>` : ''}
+        ${wAvgRow ? `<tr>
+          <td style="${tdSepLStyle}">Weighted avg</td>
+          <td colspan="4" style="${tdSepStyle}"></td>
+          <td style="${tdSepStyle}">${fmt(wAvgRow[0])}</td>
+          <td style="${tdSepStyle}">${fmt(wAvgRow[1])}</td>
+          <td style="${tdSepStyle}">${fmt(wAvgRow[2])}</td>
+        </tr>` : ''}
+      </tbody>
+    </table>
+    <div style="display:flex;gap:24px;margin-top:18px;flex-wrap:wrap;">
+      <div style="background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 22px;">
+        <div style="font-family:var(--font-mono);font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);">Accuracy</div>
+        <div style="font-size:1.4rem;font-weight:600;color:var(--text-primary);margin-top:4px;">${accuracy}</div>
+      </div>
+      <div style="background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 22px;">
+        <div style="font-family:var(--font-mono);font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);">AUC</div>
+        <div style="font-size:1.4rem;font-weight:600;color:var(--text-primary);margin-top:4px;">${auc}</div>
+      </div>
+    </div>`;
+}
+
+function renderF1Threshold(host) {
+  const c = getThemeColors();
+  const p = state.data[state.currentProp];
+  const f1d = p.f1_threshold;
+  if (!f1d || f1d.length === 0) { document.getElementById(host).innerHTML = '<p style="color:var(--text-muted);padding:20px">No probability data available</p>'; return; }
+  const palette = [c.error, c.success, c.info, c.warning, c.accent];
+  const traces = [];
+  f1d.forEach((cls, ci) => {
+    traces.push({ x: cls.thresholds, y: cls.precision, mode: 'lines', name: `Precision ${cls.label}`, line: { color: palette[(ci * 3) % palette.length], width: 2 } });
+    traces.push({ x: cls.thresholds, y: cls.recall, mode: 'lines', name: `Recall ${cls.label}`, line: { color: palette[(ci * 3 + 1) % palette.length], width: 2 } });
+    traces.push({ x: cls.thresholds, y: cls.fscore, mode: 'lines', name: `F1 ${cls.label}`, line: { color: palette[(ci * 3 + 2) % palette.length], width: 2, dash: 'dot' } });
+  });
+  Plotly.newPlot(host, traces, plotLayout({
+    xaxis: { title: { text: 'Threshold' }, range: [0, 1] },
+    yaxis: { title: { text: 'Score' }, range: [0, 1.05] },
+    shapes: f1d.map(cls => ({ type: 'line', x0: cls.best_threshold, x1: cls.best_threshold, y0: 0, y1: 1, yref: 'paper', line: { color: c.muted, width: 1.5, dash: 'dash' } })),
+    annotations: f1d.map(cls => ({ x: cls.best_threshold, y: 1.02, yref: 'paper', text: `F1=${cls.best_f1}`, showarrow: false, font: { size: 10, color: c.text } })),
+  }), plotConfig());
+}
+
+function renderEnrichmentClf(host) {
+  const c = getThemeColors();
+  const p = state.data[state.currentProp];
+  const enr = p.enrichment_clf;
+  if (!enr || enr.length === 0) { document.getElementById(host).innerHTML = '<p style="color:var(--text-muted);padding:20px">No probability data available</p>'; return; }
+  const palette = [c.error, c.success, c.info, c.warning, c.accent];
+  const traces = enr.map((cls, i) => ({
+    x: cls.sf, y: cls.tpf, mode: 'lines', name: `TPF ${cls.label}`, line: { color: palette[i % palette.length], width: 2 },
+  }));
+  traces.push({ x: [0, 1], y: [0, 1], mode: 'lines', name: 'random', line: { color: c.muted, dash: 'dash' } });
+  Plotly.newPlot(host, traces, plotLayout({
+    xaxis: { title: { text: 'Selected fraction' }, range: [0, 1] },
+    yaxis: { title: { text: 'True positive fraction' }, range: [0, 1.05] },
+  }), plotConfig());
+}
+
+function renderProbBars(host) {
+  const hostEl = document.getElementById(host);
+  const body = hostEl.parentElement;
+  const p = state.data[state.currentProp];
+  const pb = p.prob_bars;
+  if (!pb?.raw_probs) { hostEl.innerHTML = '<p style="color:var(--text-muted);padding:20px">No probability data available</p>'; return; }
+
+  if (!body.querySelector('.plot-controls')) {
+    const ctrl = document.createElement('div');
+    ctrl.className = 'plot-controls';
+    ctrl.innerHTML = `
+      <label>Bins <input type="range" id="${host}-bins" min="3" max="20" step="1" value="${pb.prob_bin_labels.length}">
+        <span class="ctrl-val" id="${host}-bins-val">${pb.prob_bin_labels.length}</span></label>`;
+    body.insertBefore(ctrl, hostEl);
+    hostEl.style.height = '340px';
+  }
+
+  const binsInput = document.getElementById(`${host}-bins`);
+  const binsVal   = document.getElementById(`${host}-bins-val`);
+
+  function draw() {
+    const c = getThemeColors();
+    const nBins = parseInt(binsInput.value);
+    binsVal.textContent = nBins;
+
+    const classLabels = pb.class_labels;
+    const edges = Array.from({length: nBins + 1}, (_, i) => i / nBins);
+    const binLabels = edges.slice(0, -1).map((lo, i) => `${lo.toFixed(2)}–${edges[i+1].toFixed(2)}`);
+
+    // Per-class per-bin fraction
+    const series = {};
+    binLabels.forEach(l => { series[l] = []; });
+    const classCounts = [];
+
+    classLabels.forEach(cls => {
+      const probs = pb.raw_probs[cls] || [];
+      const trueLabels = pb.y_true || [];
+      const clsProbs = probs.filter((_, i) => trueLabels[i] === cls);
+      const cnt = clsProbs.length;
+      classCounts.push(cnt);
+      binLabels.forEach((lbl, j) => {
+        const lo = edges[j], hi = edges[j + 1];
+        const inBin = clsProbs.filter(v => j === nBins - 1 ? v >= lo && v <= hi : v >= lo && v < hi).length;
+        series[lbl].push(cnt > 0 ? parseFloat((inBin / cnt).toFixed(4)) : 0);
+      });
+    });
+
+    // Same gradient as renderErrorBars but reversed: red (low prob) → yellow → green (high prob)
+    const nBands = nBins;
+    const gradColors = binLabels.map((_, i) => {
+      const t = nBands === 1 ? 0 : 1 - i / (nBands - 1);
+      const r = Math.round(t < 0.5 ? 20 + t * 2 * (200 - 20) : 200 + (t - 0.5) * 2 * (160 - 200));
+      const g = Math.round(t < 0.5 ? 100 + t * 2 * (180 - 100) : 180 - (t - 0.5) * 2 * 180);
+      const b = Math.round(20 - t * 20);
+      return `rgb(${r},${g},${b})`;
+    });
+
+    const traces = binLabels.map((lbl, i) => ({
+      x: classLabels, y: series[lbl], name: lbl, type: 'bar',
+      marker: { color: gradColors[i] },
+      text: series[lbl].map(v => v > 0.05 ? v.toFixed(2) : ''),
+      textposition: 'inside', textfont: { size: 10 },
+      hovertemplate: '<b>Class:</b> %{x}<br><b>Fraction:</b> %{y:.2f}<br><b>Prob bin:</b> ' + lbl + '<extra></extra>',
+    }));
+
+    Plotly.react(host, traces, plotLayout({
+      barmode: 'stack',
+      xaxis: { title: { text: 'Class' }, type: 'category' },
+      yaxis: { title: { text: 'Relative counts' }, range: [0, 1.08] },
+      annotations: classCounts.map((cnt, i) => ({
+        x: classLabels[i], y: 1.0, text: String(cnt), showarrow: false, yshift: 8,
+        font: { size: 10, color: c.muted },
+      })),
+    }), plotConfig());
+  }
+
+  binsInput.oninput = draw;
+  draw();
+}
+
+// ───────────────────────── Multi-property correlation heatmap ─────────────────────────
+function renderCorrelation(host) {
+  const c = getThemeColors();
+  const props = state.data._properties || [];
+  const matrix = []; const labels = props;
+  for (const a of props) {
+    const row = [];
+    for (const b of props) {
+      const da = state.data[a]?.predicted || [];
+      const db = state.data[b]?.predicted || [];
+      const n = Math.min(da.length, db.length);
+      if (n < 3) { row.push(null); continue; }
+      // Pearson
+      let sa = 0, sb = 0; for (let i = 0; i < n; i++) { sa += da[i]; sb += db[i]; }
+      const ma = sa / n, mb = sb / n;
+      let num = 0, va = 0, vb = 0;
+      for (let i = 0; i < n; i++) { const xa = da[i] - ma, xb = db[i] - mb; num += xa * xb; va += xa * xa; vb += xb * xb; }
+      row.push(va > 0 && vb > 0 ? num / Math.sqrt(va * vb) : null);
+    }
+    matrix.push(row);
+  }
+  Plotly.newPlot(host, [{
+    z: matrix, x: labels, y: labels, type: 'heatmap',
+    colorscale: [[0, c.error], [0.5, c.bg], [1, c.success]],
+    zmid: 0, zmin: -1, zmax: 1, showscale: true,
+    text: matrix.map(r => r.map(v => v == null ? '' : v.toFixed(2))),
+    texttemplate: '%{text}',
+    hovertemplate: '%{y} ↔ %{x}: <b>%{z:.3f}</b><extra></extra>',
+  }], plotLayout({}), plotConfig());
+}
+
+// ───────────────────────── Compare side-by-side ─────────────────────────
+function renderCompare(host) {
+  const props = state.data._properties || [];
+  if (props.length < 2) return;
+  const traces = props.map((p) => {
+    const pd = state.data[p];
+    if (!pd?.true || !pd?.predicted) return null;
+    const r = pd.true.map((t, i) => t - pd.predicted[i]);
+    return { y: r, type: 'box', name: p, boxpoints: 'outliers' };
+  }).filter(Boolean);
+  Plotly.newPlot(host, traces, plotLayout({
+    yaxis: { title: { text: 'Residual (True - Pred)' } },
+  }), plotConfig());
+}
+
+// ───────────────────────── Tab dispatch ─────────────────────────
+function renderAll() {
+  if (!state.data) return;
+  renderMetrics();
+  renderProvenance();
+  renderTab();
+  renderOutlierTable();
+  emitHeight();
+}
+
+function renderTab() {
+  const host = document.getElementById('panel-host');
+  host.innerHTML = '';
+  const tab = state.currentTab;
+  const make = (title, key, fn, twoCol = false) => {
+    const col = twoCol ? 'two-col' : '';
+    host.innerHTML += `<div class="plot-grid ${col}">${plotCard(title, key)}</div>`;
+    setTimeout(() => fn(key), 0);
+  };
+
+  if (state.data._task_type === 'classification') {
+    if (tab === 'overview') {
+      host.innerHTML = `<div class="plot-grid two-col">${plotCard('Confusion matrix', 'p1')}${plotCard('ROC curves', 'p2')}</div>
+        <div class="plot-grid two-col" style="margin-top:18px">${plotCard('Precision-Recall', 'p3')}${plotCard('Calibration', 'p4')}</div>`;
+      setTimeout(() => { renderConfusion('p1'); renderRoc('p2'); renderPr('p3'); renderCalibration('p4'); }, 0);
+    } else if (tab === 'confusion')     make('Confusion matrix', 'p1', renderConfusion);
+    else if (tab === 'roc')             make('ROC curves', 'p1', renderRoc);
+    else if (tab === 'pr')              make('Precision-Recall', 'p1', renderPr);
+    else if (tab === 'calibration')     make('Calibration', 'p1', renderCalibration);
+    else if (tab === 'clf_report') {
+      host.innerHTML = `<div class="plot-card"><div class="plot-card-head"><span class="plot-card-title">Classification report</span></div><div class="plot-card-body" id="p1"></div></div>`;
+      setTimeout(() => renderClfReport('p1'), 0);
+    }
+    else if (tab === 'f1_threshold')    make('F1 threshold tuning', 'p1', renderF1Threshold);
+    else if (tab === 'enrichment_clf')  make('Hit enrichment', 'p1', renderEnrichmentClf);
+    else if (tab === 'prob_bars')       make('Probability bars', 'p1', renderProbBars);
+    else if (tab === 'compare')         make('Cross-property residuals', 'p1', renderCompare);
+    return;
+  }
+
+  if (tab === 'overview') {
+    host.innerHTML = `<div class="plot-grid two-col">${plotCard('Pred vs True', 'p1')}${plotCard('Residuals', 'p2')}</div>
+      <div class="plot-grid two-col" style="margin-top:18px">${plotCard('Error distribution', 'p3')}${plotCard('Hit enrichment', 'p4')}</div>`;
+    setTimeout(() => { renderScatter('p1'); renderResiduals('p2'); renderErrorHist('p3'); renderEnrichment('p4'); }, 0);
+  } else if (tab === 'scatter')       make('Pred vs True', 'p1', renderScatter);
+  else if (tab === 'scatter_ma')      make('Scatter + Moving Avg Error', 'p1', renderScatterMA);
+  else if (tab === 'scatter_cutoff')  make('Cutoff scatter', 'p1', renderScatterCutoff);
+  else if (tab === 'residuals')       make('Residuals', 'p1', renderResiduals);
+  else if (tab === 'errors')          make('Error distribution', 'p1', renderErrorHist);
+  else if (tab === 'error_bars')      make('Error barplot by bin', 'p1', renderErrorBars);
+  else if (tab === 'threshold_var')   make('Threshold variation', 'p1', renderThresholdVar);
+  else if (tab === 'enrichment')      make('Hit enrichment', 'p1', renderEnrichment);
+  else if (tab === 'compare') {
+    host.innerHTML = `<div class="plot-grid two-col">${plotCard('Property residuals', 'p1')}${plotCard('Property correlation', 'p2')}</div>`;
+    setTimeout(() => { renderCompare('p1'); renderCorrelation('p2'); }, 0);
+  }
+}
+
+// ───────────────────────── Boot ─────────────────────────
+wireFilePicker();
+const initial = tryParseInitial();
+if (initial) {
+  setData(initial);
+} else {
+  // Empty state visible by default
+  setTimeout(emitHeight, 50);
+}
+</script>
+</body>
+</html>

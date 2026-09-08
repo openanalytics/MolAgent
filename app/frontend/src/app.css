@@ -1,0 +1,60 @@
+@import 'tailwindcss';
+
+:root {
+	--bg-primary: #0f172a;
+	--bg-secondary: #1e293b;
+	--bg-tertiary: #334155;
+	--bg-hover: #475569;
+	--text-primary: #e2e8f0;
+	--text-secondary: #94a3b8;
+	--text-muted: #64748b;
+	--accent: #3b82f6;
+	--accent-hover: #2563eb;
+	--accent-dim: rgba(59, 130, 246, 0.15);
+	--border: #334155;
+	--success: #22c55e;
+	--warning: #f59e0b;
+	--error: #ef4444;
+	--radius: 8px;
+	--radius-lg: 14px;
+	--font-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+	--font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+@media (prefers-color-scheme: light) {
+	:root {
+		--bg-primary: #f8fafc;
+		--bg-secondary: #f1f5f9;
+		--bg-tertiary: #e2e8f0;
+		--bg-hover: #cbd5e1;
+		--text-primary: #1e293b;
+		--text-secondary: #475569;
+		--text-muted: #94a3b8;
+		--accent: #2563eb;
+		--accent-hover: #1d4ed8;
+		--accent-dim: rgba(37, 99, 235, 0.1);
+		--border: #e2e8f0;
+	}
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	font-family: var(--font-sans);
+	background: var(--bg-primary);
+	color: var(--text-primary);
+	line-height: 1.5;
+}
+
+code, pre, .mono {
+	font-family: var(--font-mono);
+}
+
+input, select, textarea {
+	font-family: inherit;
+	font-size: inherit;
+}

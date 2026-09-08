@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "molagent": {
+      "type": "stdio",
+      "command": "bash",
+      "args": ["mcp/launch.sh"]
+    }
+  }
+}

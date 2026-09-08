@@ -12,571 +12,429 @@
 [![License](https://img.shields.io/badge/License-GPL--3.0-yellow.svg)](LICENSE)
 [![Agentic AI](https://img.shields.io/badge/Agentic-AI-purple.svg)](https://github.com/openanalytics/MolAgent)
 
-# **MolAgent is an evolving Multi-Agent System to support all aspects of early-stage drug discovery** 
+**MolAgent is an evolving Multi-Agent System to support all aspects of early-stage drug discovery**
 
-[Installation](#install-package) • [MCP server](#%EF%B8%8F-mcp-server-architecture) • [Setup](#starting-mcp-servers-locally) • [Usage](#examples) • [Support](#contacts)
+[Installation](#-quick-start) • [MCP server](#-mcp-server) • [Web app](#-web-app) • [Claude Code](#-claude-code-integration) • [Support](#contacts)
 
 </div>
 
-## **The current version of MolAgent focuses on introducing the agentic components which are needed for delivering expert-level predictive modeling capabilities:**
-- **🧠 Autonomous Model Construction**: AI agents that can train predictive models with expert-level quality
-- **⚡ On-the-fly Training**
-- **🔧 MCP-Based Architecture**: the componenets are Built as **Model Context Protocol (MCP) servers** to be system-agnostic and ensuring compatibility with various agentic frameworks.
-- **🧩 Claude Code Skills**: a native Claude Code plugin (`automol-tasks-manager`) providing `train-pipeline`, `predict`, and `visualize` skills for end-to-end modeling directly in the IDE — no MCP servers required.
+MolAgent ships as a **14-tool MCP server**, a **SvelteKit web application**, and a **Claude Code plugin**. All three surfaces drive the same [AutoMol](https://github.com/openanalytics/AutoMol) ML backend — nested cross-validation, ensemble stacking, pretrained molecular encoders — without requiring any ML expertise from the user.
 
+> There is also a minimal standalone plugin: [MolAgentLight](https://github.com/JorisTavernier/MolAgentLight).
 
-### Update March 2026: Claude Code Plugin (2)
+### Abstract
 
-You can also use MolAgent as a Claude Code plugin with the automol-tasks-manager:
-
-```bash
-claude --plugin-dir ./automol-tasks-manager/
-```
-
-> **Note:** After starting Claude Code with the plugin for the first time, restart once so the SessionStart hook creates the virtual environment and installs all dependencies. Then restart a **second time** — this injects `$AUTOMOL_ROOT` into all Bash calls (including subagents) via `.claude/settings.local.json`.
-
-This provides three skills:
-- `train-pipeline`: Train ensemble stacking models on SMILES data
-- `predict`: Make predictions using trained models
-- `visualize`: Generate an interactive HTML dashboard from evaluation results
-
-> There is a mimimal MolAgent Claude Code plugin available: [MolAgentLight](https://github.com/JorisTavernier/MolAgentLight).
-
-### Train a Model
-
-Once in Claude Code, use natural language:
-
-```
-> Train a model on my_molecules.csv with target property potency
-```
-
-Or invoke the skill directly:
-
-```
-> /train-pipeline
-```
-
-The skill will:
-1. Detect dataset properties (SMILES column, targets, task type)
-2. Auto-configure sensible defaults
-3. Ask for approval
-4. Run the full pipeline: prepare → split → train → evaluate → refit
-
-### Make Predictions
-
-```
-> Predict properties for new_molecules.csv using my trained model
-```
-
-Or:
-
-```
-> /predict
-```
-
-The predict skill will list the trained models from the registry. 
-
-## Skills
-
-### train-pipeline
-
-End-to-end training pipeline for molecular property prediction.
-
-**Features:**
-- Regression and classification support
-- Multiple feature generators: Bottleneck (pretrained encoder), ECFP fingerprints, RDKit descriptors
-- Nested cross-validation with hyperparameter optimization
-- Ensemble stacking methods
-- Computational load presets: `free`, `cheap`, `moderate`, `expensive`
-
-**Outputs:**
-- Trained models saved as `.pt` files in `MolagentFiles/{run_id}/`
-- Model registry at `MolagentFiles/model_registry.json`
-- Evaluation metrics and model card
-
-### predict
-
-Single-phase inference skill.
-
-**Features:**
-- Auto-discovers trained models from registry
-- Accepts CSV files or individual SMILES strings
-- Supports merged multi-property models
-- Outputs predictions to CSV
-
-### visualize
-
-Single-phase visualization skill.
-
-**Features:**
-- Auto-discovers completed evaluation runs
-- Generates a **self-contained HTML file** — no server required, works offline after first load
-- Opens the dashboard in the default browser automatically
-
-**Regression plots:** scatter with MAE bands · residuals · error histogram · error bar plot · moving average error · hit enrichment curve · threshold sweep
-
-**Classification plots:** confusion matrix · ROC curves · precision-recall curves · F1 threshold tuning · calibration diagram · probability bar plot
-
-**Usage:**
-```
-> Visualize the results from my last training run
-> /visualize
-```
-
-<img src="Gifs/Dashboard.png" width="800">
-
-<sup>Figure: MolAgent interactive dashboard — Caco-2 regression run. Left: scatter plot with MAE bands and molecular hover tooltip (SmilesDrawer). Right: moving average error. Metrics panel shows MAE, RMSE, R², Pearson and test set size.</sup>
+The advent of agentic AI systems is leading to significant transformations across scientific and technological domains. Computer-aided drug design (CADD)—a multifaceted process encompassing complex, interdependent tasks—stands to benefit profoundly from these advancements. However, a challenge is empowering agentic systems to autonomously construct models for properties estimation that match the quality and reliability of those developed by human experts. As this is not currently straight forward, this capability represents a major bottleneck for fully realizing the potential of autonomous pipelines in drug discovery. We present here MolAgent, a system-agnostic agentic AI framework designed for high-fidelity modeling of molecular properties in early-stage drug discovery. MolAgent autonomously implements expert-level pipelines for both classification and regression, empowering agentic systems to efficiently construct and deploy models. With integrated automated feature engineering, robust model selection, advanced ensemble methodologies, and comprehensive validation frameworks, MolAgent ensures optimal accuracy and model robustness. The platform seamlessly accepts 2D and 3D structural data for ligands and receptors and harmonizes traditional molecular descriptors with advanced deep learning features extracted from pretrained 2D and 3D encoders. Ultimately the platform's fully automated, end-to-end workflow is designed for seamless agentic execution. Adherence to the Model Context Protocol (MCP) guarantees interoperability with diverse agentic AI infrastructures, ensuring flexible integration into complex, future discovery pipelines.
 
 ---
 
-### 📄Citation
+### Update September, 2026 — New encoders (breaking default change)
 
-**MolAgent: Biomolecular Property Estimation in the Agentic Era**
+> **Breaking:** `Bottleneck` now refers to the **ChEMBL 37 E-logD (v6_best)** encoder. Previously it pointed to ChEMBL 27. Existing `.pt` model files are unaffected (each pickles its own encoder), but `model_registry.json` entries predating this change that carry `feature_keys: ["Bottleneck"]` now resolve to v6, not ChEMBL 27. Disambiguate by `run_date`.
 
-Jose Carlos Gómez-Tamayo*, Joris Tavernier**, Roy Aerts***, Natalia Dyubankova*, Dries Van Rompaey*, Sairam Menon*, Marvin Steijaert**, Jörg Wegner*, Hugo Ceulemans*, Gary Tresadern*, Hans De Winter***, Mazen Ahmad* 
-> \*Johnson & Johnson \
->  ** Open Analytics NV \
->  ***Laboratory of Medicinal Chemistry, Department of Pharmaceutical Sciences, University of Antwerp
+New encoder keys:
 
-**Funding**: This work was partly funded by the Flanders innovation & entrepreneurship (VLAIO) project HBC.2021.112. 
+| Key | Encoder | When to use |
+|-----|---------|-------------|
+| `Bottleneck` | ChEMBL 37 E-logD v6_best | **New default.** Best accuracy for most endpoints. |
+| `Bottleneck_chembl37_base` | ChEMBL 37 E-base (no logD supervision) | **logD, logP, lipophilicity** — avoids CV bias from logD leakage. |
+| `Bottleneck_chembl27` | Legacy ChEMBL 27 | Reproduce results from models trained before August 2026. |
 
-```bibtex
-@article{molagent2025,
-author = {Gómez-Tamayo, Jose Carlos and Tavernier, Joris and Aerts, Roy and Dyubankova, Natalia and Van Rompaey, Dries and Menon, Sairam and Steijaert, Marvin and Wegner, J{\"o}rg Kurt and Ceulemans, Hugo and Tresadern, Gary and De Winter, Hans and Ahmad, Mazen},
-title = {MolAgent: Biomolecular Property Estimation in the Agentic Era},
-journal = {Journal of Chemical Information and Modeling},
-volume = {65},
-number = {20},
-pages = {10808-10818},
-year = {2025},
-doi = {10.1021/acs.jcim.5c01938},
-note ={PMID: 41099298},
-URL = {https://doi.org/10.1021/acs.jcim.5c01938}
-}
-```
-
-Our **roadmap** includes expanding from the current componenents into a full multi agentic ecosystem of specialized agents including deep research, predective modeling, molecular generation and biopharmaceutical/pharmacokinetic characterization in the drug design process
-
-### Quick Jumps
-* [Installation](#install-package): Jump to installation of MolAgent
-* [Setup](#starting-mcp-servers-locally): Jump to starting the MCP servers
-* [Usage](#examples): Jump to the example usage of MolAgent, includes a Gradio Chatbot
-* [AutoMol](https://github.com/openanalytics/AutoMol/tree/main): Jump to the ML backend AutoMol and its [Tutorials](https://github.com/openanalytics/AutoMol/tree/main/Tutorials)
-* [MolAgentLight](https://github.com/JorisTavernier/MolAgentLight): a mimimal MolAgent Claude Code plugin
-
-### abstract
-
-The advent of agentic AI systems is leading to significant transformations acrossscientific and technological domains. Computer-aided drug design (CADD)—a multifaceted process encompassing complex, interdependent tasks—stands to benefitprofoundly from these advancements. However, a challenge is empowering agentic systems to autonomously construct models for properties estimation that match the quality and reliability of those developed by human experts. As this is not currently straight forward, this capability represents a major bottleneck for fully realizing the potential of autonomous pipelines in drug discovery. We present here MolAgent, a system-agnostic agentic AI framework designed for high-fidelity modeling of molecular properties in early-stage drug discovery. MolAgent autonomously implements expert-level pipelines for both classification and regression, empowering agentic systems to efficiently construct and deploy models. With integrated automated feature engineering, robust model selection, advanced ensemble methodologies, and comprehensive validation frameworks, MolAgent ensures optimal accuracy and model robustness. The platform seamlessly accepts 2D and 3D structural data for ligands and receptors and harmonizes traditional molecular descriptors with advanced deep learning features extracted from pretrained 2D and 3D encoders. Ultimately the platform’s fully automated, end-to-end workflow is designed for seamless agentic execution. Adherence to the Model Context Protocol (MCP) guarantees interoperability with diverse agenticAI infrastructures, ensuring flexible integration into complex, future discovery pipelines.
-
-### Architecture Overview
-
-MolAgent leverages backend ML pipelines from the **[AutoMol](https://github.com/openanalytics/AutoMol)** package, providing a seamless bridge between expert-level molecular modeling and agentic AI systems:
-
-```mermaid
-graph TB
-    subgraph "MolAgent MCP Servers"
-        MS["`<p style="font-size: 12px; width:250px;text-align: left;"><b>automol_model_server.py</b><br>
-Main Modeling Engine<br>
-    - Regression & Classification<br>
-    - Feature selection<br>
-    - Model Selection & Validation</p>`"]
-        DS["`<p style="font-size: 12px; width:250px;text-align: left;"><b>automol_data_server.py</b><br>
-Data retrieval & preprocessing<br>
-    - TDC Integration<br>
-    - 3D Structure Processing</p>`"]
-    end
-    
-    subgraph "AutoMol Package"
-        AP["` <p style="font-size: 12px; width:250px;text-align: left;"><b>ML Pipeline</b><br>
-Robust predictive modelling<br>
-    - Nested Cross-Validation<br>
-    - Ensemble Methods<br>
-    - Advanced Feature Generators</p>`"]
-    end
-    
-    subgraph "Agentic AI Systems"
-        AG["` <p style="font-size: 12px; width:250px;text-align: left;"><b>AI Agents</b><br>
-Claude, ChatGPT, Custom Agents<br>
-    - Autonomous Decision Making<br>
-    - Multi-Agent Orchestration<br>
-    - Dynamic Workflow Management </p>`"]
-    end
-    
-    AG -->|MCP server| MS
-    AG -->|MCP server| DS
-    MS -->|ML backend| AP
-    
-    style MS fill:#e1f5fe, width:275px
-    style DS fill:#f3e5f5, width:275px
-    style AP fill:#fff3e0, width:275px
-    style AG fill:#e8f5e8, width:275px
-```
+Other changes in this release:
+- Merge now **rejects** models where the same key (`"Bottleneck"`) resolves to different encoder implementations — prevents silent mixing of ChEMBL 27 and v6 weights.
+- Feature names are now variant-aware (`Bottleneck_chembl37_base_0`, `Bottleneck_0`) so merged models with multiple encoder variants produce distinct column names.
+- MCP timeout defaults (`MCP_TIMEOUT`, `MCP_TOOL_TIMEOUT`, `CLAUDE_CODE_MCP_IDLE_TOOL_TIMEOUT`) are now baked into the SessionStart hook automatically.
 
 ---
 
-## Core Capabilities
-
-MolAgent enables the following expert-level capabilities through agentic AI:
-
-### 🧠 **Autonomous Model Construction**
-- **Expert-Level Pipelines**: Implements sophisticated ML workflows comparable to human experts
-- **Dynamic Feature Selection**: Automatically selects optimal molecular representations
-- **Intelligent Hyperparameter Optimization**: Nested cross-validation with Bayesian optimization
-- **Ensemble Methods**: Advanced stacking and blending strategies
-
-### 🔬 **Comprehensive Molecular Modeling**
-- **2D & 3D Representations**: Traditional descriptors to advanced deep learning embeddings
-- **Protein-Ligand Interactions**: Structure-based features for binding affinity prediction
-- **Chemical-Aware Validation**: Scaffold-based splitting to avoid data leakage
-- **Multi-Modal Integration**: Harmonizes diverse molecular data types
-
-### 🤖 **Agentic AI Integration**
-- **MCP-Compliant**: integration with Claude, ChatGPT, and custom agents
-- **Zero-Configuration**: out-of-the-box with sensible defaults
-- **Multi-Agent Orchestration**: complex workflows with data and modeling agents
-- **Real-Time Adaptation**: workflow management based on data characteristics
-
----
-
-## 🛠️ MCP Server Architecture
-
-###  **Primary Server: `automol_model_server.py`**
-The main modeling engine providing machine learning capabilities:
-
-| Tool | Category | Description | Complexity |
-|------|----------|-------------|------------|
-| `automol_regression_model` | Modeling | Train regression models for continuous molecular properties | High |
-| `automol_classification_model` | Modeling | Train classification models for categorical molecular properties | High |
-| `list_tools` | Utility | Comprehensive tool and capability discovery | Low |
-| `get_server_status` | Utility | Server health monitoring and diagnostics | Low |
-
-
-###  **Auxiliary Server: `automol_data_server.py`**
-We provided additionally a data server for data handling and preparation using the [Therapeutic Data commons](https://tdcommons.ai/) (TDC) and processing 3D structure data:
-
-| Tool | Category | Description | Use Case |
-|------|----------|-------------|----------|
-| `retrieve_tdc_data` | Data Access | Download datasets from Therapeutic Data Commons | Public datasets |
-| `retrieve_tdc_groups` | Data Discovery | List available TDC problem groups | Dataset exploration |
-| `retrieve_tdc_group_datasets` | Data Discovery | List datasets within specific TDC group | Targeted search |
-| `retrieve_3d_data` | 3D Processing | Extract properties from SDF files with 3D structures | Structure-based modeling |
-
-You can use the 3D features if you provide 3d information in the form of an sdf file and pdb files. Al the different pdbs should be placed in the same folder. This folder should be provided. The sdf file contains all the structures of the compounds. There should be a property pdb referencing the name of the pdb file to be used. Next to the pdb name, the code also requires a property with the target value of the compound. For example, after unzipping <i>Data/manuscript_data.zip</i>,  <i>Data/manuscript_data/ABL/selected_dockings.sdf</i> contains the ligands and the pdbs are located in <i>Data/manuscript_data/ABL/pdbs</i>. 
-
----
-
-### 📊 Benchmark Performance
-
-MolAgent achieves **competitive performance** with expert-crafted models on TDC benchmarks using only "cheap" computational budget for the ADME group:
-
-Dataset | MolAgent on the fly| Best by human | Ranking | Metric 
-|---------|----------|------------|---------|---------|
-Caco2_Wang | 0.303+-0.002 | 0.276+-0.005 | 6th | MAE | 
-Hia_hou | 0.87+-0.006 | 0.989+-0.001 | 14th | AUROC | 
-pgp_broccatelli | 0.849+-0.005 | 0.938+-0.006 | 15th | AUROC  |
-Bioavailability_ma | 0.619+-0.028 | 0.748+-0.033 | 10th | AUROC | 
-Lipophilicity_astrazeneca | 0.309+-0.001 | 0.467+-0.006 | 🥇 1st | MAE | 
-Solubility_aqsoldb | 0.889+-0.001 | 0.761+-0.024 | 8th | MAE  |
-bbb_martins | 0.757+-0.004 | 0.916+-0.001 | 21st | AUROC  |
-Ppbr_az  |7.86+-0.3 | 7.526+-0.106 | 4th | MAE  |
-Vdss_lombardo  | 0.29+-0.175 | 0.713+-0.007 | 13th | Spearman | 
-Cyp2d6_veith | 0.386+-0.007 | 0.790+-0.001 | 14th | AUPRC  |
-Cyp3a4_veith | 0.704+-0.001 | 0.916+-0.000 | 14th | AUPRC  |
-Cyp2c9_veith | 0.605+-0.004 | 0.859+-0.001 | 15th | AUPRC  |
-Cyp2d6_substrate_carbonmangels | 0.526+-0.027 | 0.736+-0.025 | 13th | AUPRC | 
-Cyp3a4_substrate_carbonmangels | 0.613+-0.019 | 0.662+-0.031 | 10th | AUROC  |
-Cyp2c9_substrate_carbonmangels | 0.384+-0.017 | 0.441+-0.033 | 8th | AUPRC  |
-Half_life_obach | 0.332+-0.047 | 0.562+-0.008 | 7th | Spearman  |
-Clearance_microsome_az | 0.651+-0.04 | 0.630+-0.010 | 🥇 1st | Spearman  |
-Clearance_hepatocyte_az | 0.445+-0.028 | 0.498+-0.009 | 🥉 3rd | Spearman  |
-herg | 0.624+-0.02 | 0.880+-0.002 | 17th | AUROC  |
-ames | 0.793+-0.005 | 0.871+-0.002 | 13th | AUROC  |
-dili | 0.778+-0.025 | 0.925+-0.005 | 16th | AUROC | 
-Ld50_zhu | 0.606+-0.0 | 0.552+-0.009 | 🥉 3rd | MAE |
-
-<p style="font-size: 10px";> Table 1. Performance of MolAgent under “cheap” computational budget across ADMET tasks from the Therapeutics
-Data Commons (TDC) benchmark. Results are reported as mean ± standard deviation over 5 independent runs
-(different seeds). The “MolAgent” column denotes MolAgent’s performance, whereas “Best” corresponds to the best
-result achieved by existing human-fine-tuned models. “Ranking” indicates MolAgent’s position relative to all
-evaluated baselines in TDC leaderboard. The “Metric” column specifies the evaluation criterion: mean absolute error
-(MAE; lower values are better) for regression tasks, area under the receiver operating characteristic curve (AUROC;
-higher values are better), area under the precision-recall curve (AUPRC; higher values are better), and Spearman
-correlation coefficient (higher values are better). MolAgent attains competitive accuracy compared to human-fine-
-tuned models while operating with substantially lower computational overhead.</p>
-
-
-> 📈 **Results obtained with "cheap" computational budget** - demonstrating efficiency with competitive accuracy!
-
-
----
+> **Lipophilicity / logP targets:** use `feature_keys: ["Bottleneck_chembl37_base", "rdkit"]` to avoid label leakage from logD supervision.
 
 ## 🚀 Quick Start
 
-### Install package
-Throughout the README, we assume that the terminal commands start from the root directory of the repository.
-#### Linux
-To use MolAgent, include the git submodule of AutoMol by cloning the repository with submodules
+### Prerequisites
+
+- Python 3.12, [uv](https://github.com/astral-sh/uv) (`pip install uv`)
+- Node.js 18+ (for the web app frontend)
+
+### Install
+
 ```bash
 git clone --recurse-submodules https://github.com/openanalytics/MolAgent
+cd MolAgent
+git lfs pull
 ```
-We've included an install script for your convenience
-```bash
-chmod +x install.sh
-./install.sh
-```
-All the required packages can also be installed directly using the following commands. 
 
-For automated pdf generation [wkhtmltopdf](https://wkhtmltopdf.org/) is used. On linux install with
+**Linux:**
 ```bash
-sudo apt-get install wkhtmltopdf
+chmod +x install.sh && ./install.sh
 ```
-We recommend using an uv environment for this package. The MCP server uses AutoMol which is cloned from the repository. Now, you can use the requirements file:
+
+Or manually:
 ```bash
-pip install uv
 uv venv .venv --python 3.12
 source .venv/bin/activate
 uv pip install -r requirements.txt
-uv pip install pytdc
-uv pip install rdkit==2024.3.5
+uv pip install -e "AutoMol/automol[extended]" -e AutoMol/automol_resources
 ```
-#### Windows
 
-There is an installation script for Windows, make sure to have python installed. Note that all tests and experiments were done in Linux.
-```cmd
-install.bat
-```
+> **Windows:** replace the activate line with `.venv\Scripts\activate`. See `install.bat` for a one-shot Windows script.
+>
+> **WSL with repo on a Windows drive (`/mnt/c/...`):** create the venv on the Linux filesystem to avoid the slow 9p mount (~137× slower per-file):
+> ```bash
+> uv venv ~/.venvs/molagent --python 3.12
+> source ~/.venvs/molagent/bin/activate
+> export AUTOMOL_VENV="$HOME/.venvs/molagent"
+> ```
 
 ---
-### Starting MCP servers locally
-Using the .venv environment, you can start the servers locally, by running the following commands in different terminals. We advise to run the servers from the notebook directory, since the mcp servers will save files only starting from the directory they are run from.
 
-Start data training server locally on port 8000:
-```bash
-source .venv/bin/activate
-cd MCP/
-uv run mcp_server/automol_data_server.py
-```
-Start model training server locally  on port 8001:
-```bash
-source .venv/bin/activate
-cd MCP/
-uv run mcp_server/automol_model_server.py
-```
-In the terminal of the model server, you can follow the progress of the model training. 
+## 🛠️ MCP Server
 
-### Adding functionality to the MCP servers
+All 14 tools are exposed by a single server (`mcp/server.py`). It supports two transports:
 
-The MCP model training server is based on [AutoMol](https://github.com/openanalytics/AutoMol/tree/main/), but this server does not have all the flexibility from the different AutoMol [Tutorials](https://github.com/openanalytics/AutoMol/tree/main/Tutorials). In order to adjust or add functionality supported by AutoMol but not yet present, one can easily adopt the server and the functions ([src](MCP/mcp_server/automol_model_server.py) and [automol_functions](MCP/Tools/training_tools.py)).  
+- **stdio** — used automatically by Claude Code (via `.mcp.json`)
+- **streamable-http** — for remote or multi-user deployments
 
----
-### Claude Desktop integration
+See also the [mcp-docs](mcp/MCP_SERVER.md).
+
+### Start locally (HTTP)
 
 ```bash
-claude mcp add --transport sse  automoldata https://localhost:8000/sse
-claude mcp add --transport sse automolmodelling https://localhost:8001/sse
+source ~/.venvs/molagent/bin/activate
+uv run --active --no-sync mcp/server.py
 ```
 
-### Tool Inspector
+The server listens on `http://127.0.0.1:8001/mcp` by default. Training progress is printed to this terminal.
 
-You can start the MCP tool inspector by running:
+### Start with authentication (remote / multi-user)
+
+```bash
+MOLAGENT_AUTH_REQUIRED=true \
+MOLAGENT_OUTPUT_ROOT=/abs/path/to/MolagentFiles \
+uv run --active --no-sync mcp/server.py --transport streamable-http --host 127.0.0.1 --port 8001
+```
+
+The admin token is auto-generated on first run, printed to stderr, and written to `MolagentFiles/admin_token.txt`. Manage users with `mcp/admin_cli.py`:
+
+```bash
+# Create a user
+python mcp/admin_cli.py --url http://127.0.0.1:8001/mcp --token <ADMIN_TOKEN> create-user alice
+
+# List users
+python mcp/admin_cli.py --url http://127.0.0.1:8001/mcp --token <ADMIN_TOKEN> list-users
+
+# Purge stale models/datasets (dry-run)
+python mcp/admin_cli.py --url http://127.0.0.1:8001/mcp --token <ADMIN_TOKEN> purge-stale --days 30
+```
+
+### Test the server
+
+Inspect via MCP Inspector:
 ```bash
 npx @modelcontextprotocol/inspector
 ```
-Make sure to copy the session token and set it as Proxy Session Token (under configuration) in the inspector GUI. Then set transport type as SSE with either 
+Set transport to **Streamable HTTP** and URL to `http://localhost:8001/mcp`.
+
+Or call directly with curl:
+```bash
+curl -X POST http://127.0.0.1:8001/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"list_models","arguments":{}},"id":1}'
 ```
-http://localhost:8001/sse
-```
-or
-```
-http://localhost:8000/sse
-``` 
-as URL.
+
+### Available tools
+
+| Tool | Category | Description |
+|------|----------|-------------|
+| `list_options` | Discovery | Discover available features, estimators, and configs |
+| `start_training_session` | Training | Auto-detect dataset, create a config session |
+| `answer_training_question` | Training | Accept config overrides interactively |
+| `train_and_visualize` | Training | Run the full pipeline — long-running |
+| `list_models` | Registry | Query the model registry |
+| `predict` | Inference | Run inference on new molecules |
+| `merge_models` | Registry | Combine multi-property models |
+| `delete_model` | Registry | Remove a model from the registry |
+| `download_model` | Registry | Export a model as base64 binary |
+| `upload_dataset` | Data | Upload a CSV dataset (base64) |
+| `list_datasets` | Data | List the dataset registry |
+| `delete_dataset` | Data | Remove a dataset from the registry |
+| `admin_manage` | Admin | Token management and registry purge |
+| `upload_3d_structure` | 3D | Upload SDF + PDB bundle for structure-based features |
+
+For 3D features, provide an SDF file (containing ligand structures with a `pdb` property pointing to receptor files) and a folder of PDB files. Example: after unzipping `Data/manuscript_data.zip`, use `Data/manuscript_data/ABL/selected_dockings.sdf` with PDBs in `Data/manuscript_data/ABL/pdbs`.
 
 ---
-# Examples
-In this section, we show how to use the MCP servers within the SmolAgents framework or call them directly using aiohttp. 
 
-## Integration with SmolAgents
-The notebook [gradio](MCP/Lipophilicity_AstraZeneca.ipynb) shows the integration using SmolAgents and the gradio interface. A list of examples for the multi-agentic framework is provided in the notebook: [examples](MCP/MolAgent_multiagent.ipynb). Figure 2 Depicts the structure of the agents used in these examples, see [MCP server architecture](#primary-server-automol_model_serverpy) for more details on the different tools. 
-<img src="Gifs/Manager Agent.png" width="600" height="400">
+## 🌐 Web App
 
-<sup> Figure 2. The Hierarchy of Agents in the examples.</sup>
+The web app provides a browser UI over the same MCP server.
 
+<img src="Gifs/Dashboard.png" width="800">
 
-To use LLMs, create a credential file .env with the following content adapted using your personal keys:
+<sup>Figure: MolAgent interactive dashboard — Caco-2 regression run. Scatter plot with MAE bands and molecular hover tooltip (SmilesDrawer). Metrics panel shows MAE, RMSE, R², Pearson and test set size.</sup>
+
+### Start (one command)
 
 ```bash
-ANTHROPIC_API_KEY = xxxx
+cd app && ./start.sh
+```
+
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8000/api/health
+
+`start.sh` installs frontend dependencies automatically on first run and shuts down both servers cleanly on Ctrl+C.
+
+### Manual start
+
+```bash
+# Backend (terminal 1)
+cd app
+uv run --with fastapi --with uvicorn --with python-multipart --with pydantic-settings --with "fastmcp[tasks]" --with pandas \
+  uvicorn backend.main:app --host 127.0.0.1 --port 8000
+
+# Frontend (terminal 2)
+cd app/frontend && npm install && npm run dev
+```
+
+### Remote MCP mode
+
+To connect the web app to a remote MCP server instead of spawning a local one:
+
+```bash
+MCP_SERVER_URL=http://your-server:8001/mcp \
+MCP_AUTH_TOKEN=<your_token> \
+uv run ... uvicorn backend.main:app --port 8000
+```
+
+---
+
+## 🤖 Claude Code Integration
+
+### Plugin mode (recommended)
+
+The project ships a `.mcp.json` that registers the server automatically. Launch Claude Code from the repo root:
+
+```bash
+export AUTOMOL_VENV="$HOME/.venvs/molagent"
+claude --plugin-dir .
+```
+
+This registers the MCP server and provides three skills (`train-pipeline`, `predict`, `visualize`). You can then use natural language:
+
+```
+> Train a model on my_molecules.csv with target property potency
+> Predict properties for new_molecules.csv using my trained model
+> Visualize the results from my last training run
+```
+
+Or invoke skills directly with `/train-pipeline`, `/predict`, `/visualize`.
+
+### MCP only (Claude Desktop or any MCP client)
+
+Start the HTTP server as shown above, then register it in Claude Desktop. Without auth:
+
+```bash
+claude mcp add --transport http molagent http://127.0.0.1:8001/mcp
+```
+
+With auth enabled (`MOLAGENT_AUTH_REQUIRED=true`):
+
+```bash
+claude mcp add --transport http molagent http://127.0.0.1:8001/mcp \
+  --header "Authorization: Bearer <USER_TOKEN>"
+```
+
+Or register any MCP client against `http://127.0.0.1:8001/mcp` (streamable-http transport), passing `Authorization: Bearer <USER_TOKEN>` as a request header.
+
+---
+
+## 🐍 FastMCP Client (Python)
+
+You can drive the server directly from Python using the FastMCP client.
+
+```python
+import asyncio
+from fastmcp import Client
+
+client = Client("http://127.0.0.1:8001/mcp", timeout=1e10)
+
+async def main():
+    async with client:
+        import base64, pathlib
+        csv_bytes = pathlib.Path("Data/manuscript_data/ChEMBL_SMILES.csv").read_bytes()
+
+        # Upload dataset
+        upload = await client.call_tool("upload_dataset", arguments={
+            "filename": "ChEMBL_SMILES.csv",
+            "content_base64": base64.b64encode(csv_bytes).decode(),
+        })
+        dataset_id = upload[0].text
+
+        # Start training session
+        session = await client.call_tool("start_training_session", arguments={
+            "dataset_id": dataset_id,
+            "smiles_column": "smiles",
+            "target_column": "prop1",
+            "feature_keys": ["Bottleneck", "rdkit"],
+            "computational_load": "cheap",
+        })
+
+        # Run full pipeline
+        result = await client.call_tool("train_and_visualize", arguments={
+            "session_id": session[0].text,
+        })
+        print(result)
+
+asyncio.run(main())
+```
+
+
+
+---
+
+## 🤗 SmolAgents / Gradio Integration
+
+The notebook [Lipophilicity_AstraZeneca.ipynb](MCP/Lipophilicity_AstraZeneca.ipynb) shows integration using SmolAgents and a Gradio interface. [MolAgent_multiagent.ipynb](MCP/MolAgent_multiagent.ipynb) contains multi-agent examples including the ABL1 case from the paper.
+
+### Gradio chatbot
+
+After starting the MCP server, launch the SmolAgents-powered chatbot:
+
+```bash
+source ~/.venvs/molagent/bin/activate
+uv run --active --no-sync demos/gradio_mcp_agent.py
+```
+
+App is available at http://127.0.0.1:7860. Install extra dependencies first:
+
+```bash
+uv pip install 'smolagents[mcp,litellm]' litellm boto3
+```
+
+Configure via `.env`:
+```bash
+ANTHROPIC_API_KEY=xxxx
 HF_TOKEN=xxxx
-HF_HOME=hf_home/
-TOKENIZERS_PARALLELISM=false
-OPENROUTER_API_KEY = xxxx
-TAVILY_API_KEY = xxx
-OPENROUTER_API_BASE=https://openrouter.ai/api/v1
-MODEL_ID = openrouter/meta-llama/llama-4-maverick
-#MODEL_ID = openrouter/z-ai/glm-4.5
-#MODEL_ID = openrouter/anthropic/claude-sonnet-4
-#MODEL_ID = openrouter/anthropic/claude-3.5-haiku
-#haiku directly
-#MODEL_ID = claude-3-5-haiku-20241022
-```
-You can add any key you want in the .env file. Only in the file [GradioMolagent.py](MCP/GradioMolAgent.py), the environment variable MODEL_ID is used in a LiteLLMModel. This chatbot also uses the tavily search tool. Note that Tavily search tool has a free but limited research option. 
-
-You can run jupyter-lab within the uv environment using the following command:
-```bash
-uv run --with jupyter jupyter lab
-```
-### Gradio chatclient
-
-After starting the MCP servers as shown, you can start a smolagents chatbot powered by Gradio ([GradioMolagent](MCP/GradioMolAgent.py)).
-```bash
-source .venv/bin/activate
-cd MCP
-uv run GradioMolAgent.py
-```
-The app is by default hosted at [http://127.0.0.1:7860
-](http://127.0.0.1:7860). You can use the app from your browser. 
-The following gif shows how you can interact with MolAgent. 
-
-![question](Gifs/question_2.gif)
-
-We've stopped the video after the MCP server started training a model. Note that you can see that model started training from the terminal where the model training MCP server is started. The following video shows the results after the model was trained. 
-
-![training](Gifs/training_2.gif)
-
-In the end, we asked to created a scatterplot using the predicted values. 
-
-![plot](Gifs/plot_2.gif)
-
-### Notebooks
-The notebooks are located in the folder MCP/. 
-* The notebook [Lipophilicity_AstraZeneca](MCP/Lipophilicity_AstraZeneca.ipynb) uses the default gradio app from smolagents. The propmpt to train a model for the data set Lipophilicity_AstraZeneca from TDC is provided. 
-* The notebook [MolAgent_multiagent](MCP/MolAgent_multiagent.ipynb) uses MolAgent directly without a chatbot, this notebook contains multiple questions to MolAgent, including the tyrosine-protein kinase ABL1 example from the paper.
-## Using FastMCP Client
-You can call the tools directly using the client functionality of FastMCP. We'll show some basic examples of how to call the tools available in the MCP servers. 
-
-#### Check health of the modelling server
-
-```python
-import asyncio
-from fastmcp import Client
-
-# HTTP server
-client = Client("http://127.0.0.1:8001/sse")
-
-async def main():
-    async with client:
-        # Basic server interaction
-        await client.ping()
-        
-        # List available operations
-        tools = await client.list_tools()
-        print(tools)
-        resources = await client.list_resources()
-        print(resources)
-        prompts = await client.list_prompts()
-        print(prompts)
-        
-        # Execute operations
-        server_health = await client.call_tool("get_server_status")
-        print(server_health)
-
-asyncio.run(main())
+MODEL_ID=openrouter/anthropic/claude-sonnet-4
 ```
 
-#### Regression example using CHEMBL data samples
-
-After unzipping the archived file in the folder Data, you can train a regression model using the following code.
-
-```python
-import asyncio
-from fastmcp import Client
-
-# HTTP server
-client = Client("http://127.0.0.1:8001/sse",timeout=1e10)
-
-async def main():
-    async with client:
-        # Basic server interaction
-        await client.ping()
-        
-        model_test = await client.call_tool("automol_regression_model",
-                    arguments={
-                        'data_file': '../Data/manuscript_data/ChEMBL_SMILES.csv',
-                        'smiles_column': 'smiles',
-                        'property': 'prop1',
-                        'feature_keys': ['Bottleneck', 'rdkit'],
-                        'computational_load': 'cheap',
-                        'json_dict_file_nm': 'out.json',
-                        })
-
-asyncio.run(main())
-```
-
-#### Lipophilicity example from the Therapeutics Data Commons
-
-This example first download the model using the data MCP server and next use the model MCP server to fit a predictive model. 
-
-```python
-import asyncio
-from fastmcp import Client
-
-# HTTP server
-data_client = Client("http://127.0.0.1:8000/sse",timeout=1e10)
-model_client = Client("http://127.0.0.1:8001/sse",timeout=1e10)
-
-async def main():
-    async with data_client:
-        # Basic server interaction
-        await data_client.ping()
-
-        data_return_statement = await data_client.call_tool("retrieve_tdc_data",
-                    arguments={
-                        'save_dir': 'tdc_data',
-                        'dataset_name': 'Lipophilicity_AstraZeneca',
-                        'data_dir': '.',
-                        'file_nm': 'lipo.csv',
-                        'group': 'ADME'
-                        })
-        print(data_return_statement)
-        
-
-    async with model_client:
-        # Basic server interaction
-        await model_client.ping()
-
-        model_return_statement = await model_client.call_tool("automol_regression_model",
-                    arguments={
-                        'data_file': 'lipo.csv',
-                        'smiles_column': 'Drug',
-                        'property': 'Y',
-                        'feature_keys': ['Bottleneck'],
-                        'computational_load': 'cheap',
-                        'json_dict_file_nm': 'lipo.json',
-                        })
-        print(model_return_statement)
-
-asyncio.run(main())
-```
-
-### License
-
-[![License](https://img.shields.io/badge/License-GPL--3.0-yellow.svg)](LICENSE) See the [LICENSE](LICENSE) file for details.
+The demo supports **AWS Bedrock** (via LiteLLM) and the HuggingFace Inference API. Use the Gradio file picker to attach a `.csv` — it is automatically uploaded to the dataset registry and injected as a `dataset_id` before the agent runs.
 
 ---
+
+## 📊 Benchmark Performance
+
+MolAgent achieves competitive performance with expert-crafted models on TDC benchmarks using only "cheap" computational budget:
+
+| Dataset | MolAgent | Best by human | Ranking | Metric |
+|---------|----------|---------------|---------|--------|
+| Caco2_Wang | 0.303±0.002 | 0.276±0.005 | 6th | MAE |
+| Hia_hou | 0.87±0.006 | 0.989±0.001 | 14th | AUROC |
+| pgp_broccatelli | 0.849±0.005 | 0.938±0.006 | 15th | AUROC |
+| Bioavailability_ma | 0.619±0.028 | 0.748±0.033 | 10th | AUROC |
+| Lipophilicity_astrazeneca | 0.309±0.001 | 0.467±0.006 | 🥇 1st | MAE |
+| Solubility_aqsoldb | 0.889±0.001 | 0.761±0.024 | 8th | MAE |
+| bbb_martins | 0.757±0.004 | 0.916±0.001 | 21st | AUROC |
+| Ppbr_az | 7.86±0.3 | 7.526±0.106 | 4th | MAE |
+| Vdss_lombardo | 0.29±0.175 | 0.713±0.007 | 13th | Spearman |
+| Cyp2d6_veith | 0.386±0.007 | 0.790±0.001 | 14th | AUPRC |
+| Cyp3a4_veith | 0.704±0.001 | 0.916±0.000 | 14th | AUPRC |
+| Cyp2c9_veith | 0.605±0.004 | 0.859±0.001 | 15th | AUPRC |
+| Cyp2d6_substrate_carbonmangels | 0.526±0.027 | 0.736±0.025 | 13th | AUPRC |
+| Cyp3a4_substrate_carbonmangels | 0.613±0.019 | 0.662±0.031 | 10th | AUROC |
+| Cyp2c9_substrate_carbonmangels | 0.384±0.017 | 0.441±0.033 | 8th | AUPRC |
+| Half_life_obach | 0.332±0.047 | 0.562±0.008 | 7th | Spearman |
+| Clearance_microsome_az | 0.651±0.04 | 0.630±0.010 | 🥇 1st | Spearman |
+| Clearance_hepatocyte_az | 0.445±0.028 | 0.498±0.009 | 🥉 3rd | Spearman |
+| herg | 0.624±0.02 | 0.880±0.002 | 17th | AUROC |
+| ames | 0.793±0.005 | 0.871±0.002 | 13th | AUROC |
+| dili | 0.778±0.025 | 0.925±0.005 | 16th | AUROC |
+| Ld50_zhu | 0.606±0.0 | 0.552±0.009 | 🥉 3rd | MAE |
+
+<sup>Results with "cheap" computational budget across ADMET tasks from the TDC benchmark. Mean ± std over 5 independent runs. MAE: lower is better. AUROC/AUPRC/Spearman: higher is better.</sup>
+
+---
+
+## Key Environment Variables
+
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `AUTOMOL_VENV` | Virtual environment path | `.venv` |
+| `MOLAGENT_OUTPUT_ROOT` | Pipeline output directory | `./MolagentFiles` |
+| `MOLAGENT_AUTH_REQUIRED` | Enable token auth on MCP server | off |
+| `MOLAGENT_DETERMINISTIC` | Seed RNGs, force serial CV | off |
+| `MCP_TIMEOUT` | Max time (ms) for MCP server to start | `1800000` |
+| `MCP_TOOL_TIMEOUT` | Max time (ms) a single tool call can run | `172800000` |
+| `CLAUDE_CODE_MCP_IDLE_TOOL_TIMEOUT` | Max idle time (ms) for a tool call | `172800000` |
+
+The SessionStart hook writes timeout defaults into `.claude/settings.local.json` automatically. `MCP_TIMEOUT=1800000` (30 min) covers slow first-time `uv` dependency resolution; the 48 hr tool timeouts cover `expensive` computational load training.
+
+---
+
+## Architecture
+
+MolAgent bridges expert-level molecular modeling and agentic AI via the [AutoMol](https://github.com/openanalytics/AutoMol) ML backend:
+
+```mermaid
+graph TB
+    subgraph "Agentic AI Systems"
+        AG["`Claude Code · Claude Desktop · Custom Agents · SmolAgents`"]
+    end
+    subgraph "MolAgent MCP Server"
+        MS["`mcp/server.py — 14 tools
+Training · Inference · Registry · 3D`"]
+    end
+    subgraph "AutoMol Package"
+        AP["`Nested CV · Ensemble Stacking · Feature Generators`"]
+    end
+    AG -->|MCP / plugin| MS
+    MS -->|ML backend| AP
+```
+
+---
+
+## 📄 Citation
+
+**MolAgent: Biomolecular Property Estimation in the Agentic Era**
+
+Jose Carlos Gómez-Tamayo\*, Joris Tavernier\*\*, Roy Aerts\*\*\*, Natalia Dyubankova\*, Dries Van Rompaey\*, Sairam Menon\*, Marvin Steijaert\*\*, Jörg Wegner\*, Hugo Ceulemans\*, Gary Tresadern\*, Hans De Winter\*\*\*, Mazen Ahmad\*
+
+> \*Johnson & Johnson · \*\*Open Analytics NV · \*\*\*University of Antwerp
+
+**Funding**: Partly funded by VLAIO project HBC.2021.112.
+
+```bibtex
+@article{molagent2025,
+  author  = {Gómez-Tamayo, Jose Carlos and Tavernier, Joris and Aerts, Roy and Dyubankova, Natalia and Van Rompaey, Dries and Menon, Sairam and Steijaert, Marvin and Wegner, J{\"o}rg Kurt and Ceulemans, Hugo and Tresadern, Gary and De Winter, Hans and Ahmad, Mazen},
+  title   = {MolAgent: Biomolecular Property Estimation in the Agentic Era},
+  journal = {Journal of Chemical Information and Modeling},
+  volume  = {65},
+  number  = {20},
+  pages   = {10808--10818},
+  year    = {2025},
+  doi     = {10.1021/acs.jcim.5c01938},
+}
+```
+
+---
+
 ## References
-MolAgent relies on the following open-source projects and tools:
-1. [scikit-learn](https://scikit-learn.org/stable/): Pedregosa, F., Varoquaux, G., Gramfort, A., Michel, V., Thirion, B., Grisel, O., ... & Duchesnay, É. (2011). Scikit-learn: Machine learning in Python. the Journal of machine Learning research, 12, 2825-2830.
-2. [Therapeutic Data commons](https://tdcommons.ai/): Huang, K., Fu, T., Gao, W. et al. Artificial intelligence foundation for therapeutic science. Nat Chem Biol 18, 1033–1036 (2022). https://doi.org/10.1038/s41589-022-01131-2
-3. [molfeat](https://molfeat.datamol.io/): Emmanuel Noutahi, Cas Wognum, Hadrien Mary, Honoré Hounwanou, Kyle M. Kovary, Desmond Gilmour, thibaultvarin-r, Jackson Burns, Julien St-Laurent, t, DomInvivo, Saurav Maheshkar, & rbyrne-momatx. (2023). datamol-io/molfeat: 0.9.4 (0.9.4). Zenodo. https://doi.org/10.5281/zenodo.8373019
-4. [Pytorch](https://pytorch.org/)
+
+1. [scikit-learn](https://scikit-learn.org/stable/)
+2. [Therapeutic Data Commons](https://tdcommons.ai/)
+3. [molfeat](https://molfeat.datamol.io/)
+4. [PyTorch](https://pytorch.org/)
 5. [FastMCP](https://github.com/jlowin/fastmcp)
-6. [Prolif](https://prolif.readthedocs.io/en/stable/index.html): Bouysset, C., Fiorucci, S. ProLIF: a library to encode molecular interactions as fingerprints.
-J Cheminform 13, 72 (2021). https://doi.org/10.1186/s13321-021-00548-6
-7. [SmilesDrawer](https://github.com/reymond-group/smilesDrawer): 
-Daniel Probst and Jean-Louis Reymond. SmilesDrawer: Parsing and Drawing SMILES-Encoded Molecular Structures Using Client-Side JavaScript.Journal of Chemical Information and Modeling 2018 58 (1), 1-7
+6. [ProLIF](https://prolif.readthedocs.io/): Bouysset & Fiorucci. J Cheminform 13, 72 (2021).
+7. [SmilesDrawer](https://github.com/reymond-group/smilesDrawer): Probst & Reymond. JCIM 58(1), 1–7 (2018).
+
+---
+
+## License
+
+[![License](https://img.shields.io/badge/License-GPL--3.0-yellow.svg)](LICENSE) See [LICENSE](LICENSE) for details.
 
 ## Contacts
 
-* **Developers**: Joris Tavernier and Marvin Steijaert and Gómez-Tamayo, Jose Carlos and Mazen Ahmad
-* **maintainers**: joris.tavernier@openanalytics.eu, Marvin.Steijaert@openanalytics.eu
+- **Developers**: Joris Tavernier, Marvin Steijaert, Jose Carlos Gómez-Tamayo, Mazen Ahmad
+- **Maintainers**: joris.tavernier@openanalytics.eu, Marvin.Steijaert@openanalytics.eu

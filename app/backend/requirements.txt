@@ -1,0 +1,5 @@
+fastapi>=0.133.0
+uvicorn>=0.32.0
+python-multipart>=0.0.12
+pydantic-settings>=2.6.0
+fastmcp[tasks]>=4
